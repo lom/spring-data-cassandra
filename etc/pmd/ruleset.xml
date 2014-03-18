@@ -1,0 +1,80 @@
+<?xml version="1.0" ?>
+
+<ruleset name="A1S PMD Rule set"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
+
+    <description>
+        The A1S ruleset contains a collection of good practices which should be followed in JOffice project.
+        This rulesets checks our code for bad stuff!!!
+    </description>
+
+    <exclude-pattern>.*/com/a1s/cm/billing/jaxb/.*</exclude-pattern>
+
+    <!-- @see http://pmd.sourceforge.net/pmd-5.0.5/howtomakearuleset.html -->
+
+    <rule ref="rulesets/java/basic.xml" />
+    <rule ref="rulesets/java/imports.xml">
+        <exclude name="UnnecessaryFullyQualifiedName"/>
+    </rule>
+    <rule ref="rulesets/java/unusedcode.xml" />
+    <rule ref="rulesets/java/empty.xml" />
+
+    <!--<rule ref="rulesets/java/strings.xml" />-->
+    <!--<rule ref="rulesets/java/javabeans.xml" />-->
+    <rule ref="rulesets/java/design.xml">
+        <exclude name="ConfusingTernary"/>
+        <exclude name="CloseResource"/>
+        <exclude name="GodClass"/>
+    </rule>
+    <!--<rule ref="rulesets/java/coupling.xml" />-->
+    <!--<rule ref="rulesets/java/design.xml" />-->
+    <!--<rule ref="rulesets/java/controversial.xml" />-->
+    <!--<rule ref="rulesets/java/codesize.xml" />-->
+    <!--<rule ref="rulesets/java/clone.xml" />-->
+    <!--<rule ref="rulesets/java/braces.xml" />-->
+    <!--<rule ref="rulesets/java/finalizers.xml" />-->
+    <!--<rule ref="rulesets/java/unit.xml" />-->
+    <!--<rule ref="rulesets/java/logging-jakarta-commons.xml" />-->
+    <!--<rule ref="rulesets/java/logging-java.xml" />-->
+    <!--<rule ref="rulesets/java/migrating.xml" />-->
+    <!--<rule ref="rulesets/java/naming.xml" />-->
+    <!--<rule ref="rulesets/java/optimizations.xml" />-->
+    <!--<rule ref="rulesets/java/strictexception.xml" />-->
+    <!--<rule ref="rulesets/java/strings.xml" />-->
+    <!--<rule ref="rulesets/java/sunsecure.xml" />-->
+    <!--<rule ref="rulesets/java/typeresolution.xml" />-->
+    <!--<rule ref="rulesets/java/optimizations.xml" />-->
+
+    <rule deprecated="true" ref="rulesets/java/empty.xml/EmptyCatchBlock" />
+    <rule deprecated="true" ref="rulesets/java/empty.xml/EmptyIfStmt" />
+    <rule deprecated="true" ref="rulesets/java/empty.xml/EmptyWhileStmt" />
+    <rule deprecated="true" ref="rulesets/java/empty.xml/EmptyTryBlock" />
+    <rule deprecated="true" ref="rulesets/java/empty.xml/EmptyFinallyBlock" />
+    <rule deprecated="true" ref="rulesets/java/empty.xml/EmptySwitchStatements" />
+    <rule deprecated="true" ref="rulesets/java/empty.xml/EmptySynchronizedBlock" />
+    <rule deprecated="true" ref="rulesets/java/empty.xml/EmptyStatementNotInLoop" />
+    <rule deprecated="true" ref="rulesets/java/empty.xml/EmptyInitializer" />
+    <rule deprecated="true" ref="rulesets/java/empty.xml/EmptyStatementBlock" />
+    <rule deprecated="true" ref="rulesets/java/empty.xml/EmptyStaticInitializer" />
+
+    <rule deprecated="true" ref="rulesets/java/unnecessary.xml/UnnecessaryConversionTemporary" />
+    <rule deprecated="true" ref="rulesets/java/unnecessary.xml/UnnecessaryReturn" />
+    <rule deprecated="true" ref="rulesets/java/unnecessary.xml/UnnecessaryFinalModifier" />
+    <rule deprecated="true" ref="rulesets/java/unnecessary.xml/UselessOverridingMethod" />
+    <rule deprecated="true" ref="rulesets/java/unnecessary.xml/UselessOperationOnImmutable" />
+    <rule deprecated="true" ref="rulesets/java/unnecessary.xml/UnusedNullCheckInEquals" />
+    <rule deprecated="true" ref="rulesets/java/unnecessary.xml/UselessParentheses" />
+
+    <rule ref="rulesets/java/optimizations.xml/LocalVariableCouldBeFinal" />
+    <rule ref="rulesets/java/optimizations.xml/UseArrayListInsteadOfVector" />
+    <rule ref="rulesets/java/optimizations.xml/UseStringBufferForStringAppends" />
+    <rule ref="rulesets/java/optimizations.xml/AvoidArrayLoops" />
+    <rule ref="rulesets/java/optimizations.xml/UnnecessaryWrapperObjectCreation" />
+    <rule ref="rulesets/java/optimizations.xml/AddEmptyString" />
+    <rule ref="rulesets/java/optimizations.xml/RedundantFieldInitializer" />
+    <rule ref="rulesets/java/optimizations.xml/AddEmptyString" />
+    <rule ref="rulesets/java/optimizations.xml/PrematureDeclaration" />
+
+</ruleset>

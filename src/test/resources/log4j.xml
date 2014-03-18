@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration PUBLIC "-//LOGGER" "log4j.dtd">
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+    <!-- Appenders -->
+    <appender name="console" class="org.apache.log4j.ConsoleAppender">
+        <param name="Target" value="System.out" />
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%-5p: %c - %m%n" />
+        </layout>
+    </appender>
+
+    <appender name="file" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="File" value="logs/cm.log" />
+        <param name="Append" value="true" />
+        <param name="DatePattern" value=".yyyy-MM-dd-HH" />
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d{dd.MM.yy HH:mm:ss} %5p %c{1}.%M:%L %x - %m%n" />
+        </layout>
+    </appender>
+
+    <logger name="com.a1s">
+        <level value="debug" />
+    </logger>
+
+    <logger name="org.springframework.data.cassandra">
+        <level value="trace" />
+    </logger>
+
+    <!-- Root Logger -->
+    <root>
+        <priority value="info" />
+        <!--<appender-ref ref="console" />-->
+        <appender-ref ref="console" />
+    </root>
+
+</log4j:configuration>
