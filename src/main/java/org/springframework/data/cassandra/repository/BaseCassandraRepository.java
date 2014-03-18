@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.data.cassandra.repository;
 
 import org.springframework.data.cassandra.convert.CassandraEntityConverter;
@@ -17,7 +32,7 @@ import java.util.*;
 /**
  * Date: 28.01.14 17:27
  *
- * @author lom
+ * @author Alexandr V Solomatin
  */
 abstract public class BaseCassandraRepository<T, ID extends Serializable> implements CassandraRepository<T, ID> {
     protected CassandraTemplate template;
@@ -83,7 +98,7 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
     @Override
     public Iterable<T> findAll(Iterable<ID> ids) {
         if (persistentEntity.getIdProperty().isEntity()) {
-            // ID составной, делаем несколько запросов
+            // ID is complex, need multiple requests
             final ArrayList<T> result = new ArrayList<>(20);
             for (final ID id: ids) {
                 final T persisted = findOne(id);
@@ -129,7 +144,7 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
     @Override
     public void delete(Iterable<? extends T> entities) {
         if (persistentEntity.getIdProperty().isEntity()) {
-            // ID составной, делаем несколько запросов
+            // ID is complex, need multiple requests
             for (final T entity: entities) {
                 delete(entity);
             }

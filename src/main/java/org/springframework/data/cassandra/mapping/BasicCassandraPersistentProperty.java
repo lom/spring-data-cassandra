@@ -26,7 +26,7 @@ import org.springframework.util.StringUtils;
 /**
  * Cassandra specific {@link org.springframework.data.mapping.model.AnnotationBasedPersistentProperty} implementation.
  * 
- * @author Alex Solomatin
+ * @author Alexandr V Solomatin
  *
  */
 public class BasicCassandraPersistentProperty extends AnnotationBasedPersistentProperty<CassandraPersistentProperty>

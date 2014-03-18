@@ -25,7 +25,7 @@ import java.nio.ByteBuffer;
 /**
  * {@link PropertyValueProvider} to read property values from a {@link Row}.
  * 
- * @author Alex Solomatin
+ * @author Alexandr V Solomatin
  */
 public class CassandraPropertyValueProvider implements PropertyValueProvider<CassandraPersistentProperty> {
 

@@ -25,7 +25,7 @@ import java.util.HashSet;
 /**
  * Simple constant holder for a {@link SimpleTypeHolder} enriched with Cassandra specific simple types.
  * 
- * @author Alex Solomatin
+ * @author Alexandr V Solomatin
  */
 final public class CassandraSimpleTypes {
     public static final SimpleTypeHolder HOLDER;

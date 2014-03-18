@@ -26,7 +26,7 @@ import org.springframework.data.util.TypeInformation;
  * Default implementation of a {@link MappingContext} for Cassandra using {@link BasicCassandraPersistentEntity} and
  * {@link BasicCassandraPersistentProperty} as primary abstractions.
  * 
- * @author Alex Solomatin
+ * @author Alexandr V Solomatin
  */
 public class CassandraMappingContext
         extends AbstractMappingContext<BasicCassandraPersistentEntity<?>, CassandraPersistentProperty> {

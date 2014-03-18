@@ -45,7 +45,7 @@ import java.util.Iterator;
  * {@link CassandraEntityConverter} that uses a {@link MappingContext} to do sophisticated mapping of domain objects to
  * {@link Row}.
  * 
- * @author Alexandr Solomatin
+ * @author Alexandr V Solomatin
  */
 public class MappingCassandraEntityConverter implements CassandraEntityConverter {
 	protected MappingContext<? extends CassandraPersistentEntity<?>, CassandraPersistentProperty> mappingContext =
