@@ -13,23 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.cassandra.template;
+package org.springframework.data.cassandra.batch;
 
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.ConsistencyLevel;
+
+import java.lang.annotation.*;
 
 /**
- * Date: 27.12.13 12:05
+ * Date: 18.03.14 15:59
  *
  * @author Alexandr V Solomatin
  */
-public interface CassandraTemplate {
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Batch {
+    /**
+     * Cassandra session bean name
+     *
+     * @return
+     */
+    String value() default "";
 
-    ResultSet execute(String query);
-    ResultSet execute(Statement statement);
+    long timestamp() default -1L;
 
-    void startBatch(BatchAttributes batchAttributes);
-    void cancelBatch();
-    void applyBatch();
+    ConsistencyLevel consistencyLevel() default ConsistencyLevel.ANY;
+
+    boolean unlogged() default false;
 
 }

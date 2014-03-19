@@ -28,6 +28,10 @@
         <level value="trace" />
     </logger>
 
+    <logger name="com.datastax">
+        <level value="error" />
+    </logger>
+
     <!-- Root Logger -->
     <root>
         <priority value="info" />

@@ -13,23 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.cassandra.template;
-
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Statement;
+package org.springframework.data.cassandra.entity;
 
 /**
- * Date: 27.12.13 12:05
+ * Date: 18.03.14 18:11
  *
  * @author Alexandr V Solomatin
  */
-public interface CassandraTemplate {
-
-    ResultSet execute(String query);
-    ResultSet execute(Statement statement);
-
-    void startBatch(BatchAttributes batchAttributes);
-    void cancelBatch();
-    void applyBatch();
-
+public interface PostDao {
+    void someMethod();
+    void someMethod1();
 }
