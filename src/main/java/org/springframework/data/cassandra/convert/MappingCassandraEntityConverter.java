@@ -37,6 +37,7 @@ import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * {@link CassandraEntityConverter} that uses a {@link MappingContext} to do sophisticated mapping of domain objects to
@@ -172,87 +173,42 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
 
     @Override
     public void writeIdClause(Class<?> clazz, Object id, Select query) {
-        final CassandraPersistentEntity persistentEntity = getPersistentEntity(clazz);
-        final CassandraPersistentProperty idProperty = (CassandraPersistentProperty)persistentEntity.getIdProperty();
-
-        if (idProperty.isEntity()) {
-            writeIdClauseEntity(id, query.where());
-        } else {
-            query.where().and(
-                    QueryBuilder.eq(idProperty.getColumnName(), conversionService.convert(id, idProperty.getType())));
+        for (final Clause clause: makeIdClauseList(clazz, id)) {
+            query.where().and(clause);
         }
     }
-
-    private void writeIdClauseEntity(Object value, final Select.Where clause) {
-        final CassandraPersistentEntity persistentEntity = getPersistentEntity(value.getClass());
-        final BeanWrapper<CassandraPersistentEntity<Object>, Object> wrapper =
-                BeanWrapper.create(value, conversionService);
-
-        persistentEntity.doWithProperties(new PropertyHandler<CassandraPersistentProperty>() {
-            @Override
-            public void doWithPersistentProperty(CassandraPersistentProperty prop) {
-                final Object convertedValue = wrapper.getProperty(prop, prop.getType(), false);
-                if (convertedValue == null)
-                    return;
-
-                if (prop.isEntity()) {
-                    writeIdClauseEntity(convertedValue, clause);
-                } else {
-                    clause.and(QueryBuilder.eq(prop.getColumnName(), convertedValue));
-                }
-            }
-        });
-    }
-
 
     @Override
     public void writeIdClause(Class<?> clazz, Object id, Update query) {
-        final CassandraPersistentEntity persistentEntity = getPersistentEntity(clazz);
-        final CassandraPersistentProperty idProperty = (CassandraPersistentProperty)persistentEntity.getIdProperty();
-
-        if (idProperty.isEntity()) {
-            writeIdClauseEntity(id, query.where());
-        } else {
-            query.where().and(
-                    QueryBuilder.eq(idProperty.getColumnName(), conversionService.convert(id, idProperty.getType())));
+        for (final Clause clause: makeIdClauseList(clazz, id)) {
+            query.where().and(clause);
         }
-    }
-
-    private void writeIdClauseEntity(Object value, final Update.Where clause) {
-        final CassandraPersistentEntity persistentEntity = getPersistentEntity(value.getClass());
-        final BeanWrapper<CassandraPersistentEntity<Object>, Object> wrapper =
-                BeanWrapper.create(value, conversionService);
-
-        persistentEntity.doWithProperties(new PropertyHandler<CassandraPersistentProperty>() {
-            @Override
-            public void doWithPersistentProperty(CassandraPersistentProperty prop) {
-                final Object convertedValue = wrapper.getProperty(prop, prop.getType(), false);
-                if (convertedValue == null)
-                    return;
-
-                if (prop.isEntity()) {
-                    writeIdClauseEntity(convertedValue, clause);
-                } else {
-                    clause.and(QueryBuilder.eq(prop.getColumnName(), convertedValue));
-                }
-            }
-        });
     }
 
     @Override
     public void writeIdClause(Class<?> clazz, Object id, Delete query) {
+        for (final Clause clause: makeIdClauseList(clazz, id)) {
+            query.where().and(clause);
+        }
+    }
+
+    private List<Clause> makeIdClauseList(Class<?> clazz, Object id) {
+        final List<Clause> clauseList = new ArrayList<>();
+
         final CassandraPersistentEntity persistentEntity = getPersistentEntity(clazz);
         final CassandraPersistentProperty idProperty = (CassandraPersistentProperty)persistentEntity.getIdProperty();
 
         if (idProperty.isEntity()) {
-            writeIdClauseEntity(id, query.where());
+            makeIdClauseListEntity(clauseList, id);
         } else {
-            query.where().and(
+            clauseList.add(
                     QueryBuilder.eq(idProperty.getColumnName(), conversionService.convert(id, idProperty.getType())));
         }
+
+        return clauseList;
     }
 
-    private void writeIdClauseEntity(Object value, final Delete.Where clause) {
+    private void makeIdClauseListEntity(final List<Clause> clauseList, final Object value) {
         final CassandraPersistentEntity persistentEntity = getPersistentEntity(value.getClass());
         final BeanWrapper<CassandraPersistentEntity<Object>, Object> wrapper =
                 BeanWrapper.create(value, conversionService);
@@ -265,9 +221,9 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
                     return;
 
                 if (prop.isEntity()) {
-                    writeIdClauseEntity(convertedValue, clause);
+                    makeIdClauseListEntity(clauseList, convertedValue);
                 } else {
-                    clause.and(QueryBuilder.eq(prop.getColumnName(), convertedValue));
+                    clauseList.add(QueryBuilder.eq(prop.getColumnName(), convertedValue));
                 }
             }
         });
@@ -275,23 +231,23 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
 
     @Override
     public void writeIdsClause(Class<?> clazz, Iterable ids, Select query) {
-        final CassandraPersistentProperty idProperty = (CassandraPersistentProperty)getPersistentEntity(clazz).getIdProperty();
-
-        query.where().and(QueryBuilder.in(idProperty.getColumnName(), getConvertedIds(idProperty, ids)));
+        query.where().and(makeIdsClause(clazz, ids));
     }
 
     @Override
     public void writeIdsClause(Class<?> clazz, Iterable ids, Update query) {
-        final CassandraPersistentProperty idProperty = (CassandraPersistentProperty)getPersistentEntity(clazz).getIdProperty();
-
-        query.where().and(QueryBuilder.in(idProperty.getColumnName(), getConvertedIds(idProperty, ids)));
+        query.where().and(makeIdsClause(clazz, ids));
     }
 
     @Override
     public void writeIdsClause(Class<?> clazz, Iterable ids, Delete query) {
+        query.where().and(makeIdsClause(clazz, ids));
+    }
+
+    private Clause makeIdsClause(Class<?> clazz, Iterable ids) {
         final CassandraPersistentProperty idProperty = (CassandraPersistentProperty)getPersistentEntity(clazz).getIdProperty();
 
-        query.where().and(QueryBuilder.in(idProperty.getColumnName(), getConvertedIds(idProperty, ids)));
+        return QueryBuilder.in(idProperty.getColumnName(), getConvertedIds(idProperty, ids));
     }
 
     @Override

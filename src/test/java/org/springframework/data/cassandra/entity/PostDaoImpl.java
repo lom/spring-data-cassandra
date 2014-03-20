@@ -66,13 +66,9 @@ public class PostDaoImpl extends BaseCassandraRepository<Post,UUID> implements P
     }
 
     public void updatePost(UUID id) {
-        Update query = baseUpdate();
+        Update query = updateByIdQuery(id);
         query.with(QueryBuilder.set(c("title"), "batched post 3"));
         query.with(QueryBuilder.set(c("body"), "batched body 3"));
-
-        query.where(QueryBuilder.eq(c("id"), id));
-
-
 
         template.execute(query);
     }

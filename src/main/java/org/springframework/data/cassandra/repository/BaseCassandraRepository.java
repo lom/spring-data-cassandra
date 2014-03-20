@@ -212,6 +212,13 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
         return query;
     }
 
+    protected Update updateByIdQuery(ID id) {
+        final Update query = baseUpdate();
+        converter.writeIdClause(getEntityClass(), id, query);
+
+        return query;
+    }
+
     protected Delete baseDelete() {
         final Delete query = QueryBuilder.delete().from(getTable());
         queryWriteOptions(query);
