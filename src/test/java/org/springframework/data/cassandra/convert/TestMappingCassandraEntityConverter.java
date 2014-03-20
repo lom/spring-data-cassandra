@@ -15,11 +15,8 @@
  */
 package org.springframework.data.cassandra.convert;
 
+import com.datastax.driver.core.querybuilder.*;
 import org.springframework.data.cassandra.mapping.CassandraPersistentEntity;
-import com.datastax.driver.core.querybuilder.Delete;
-import com.datastax.driver.core.querybuilder.Insert;
-import com.datastax.driver.core.querybuilder.QueryBuilder;
-import com.datastax.driver.core.querybuilder.Select;
 import org.springframework.data.cassandra.entity.Comment;
 import org.springframework.data.cassandra.entity.CommentPk;
 import org.springframework.data.cassandra.entity.Post;
@@ -107,6 +104,27 @@ public class TestMappingCassandraEntityConverter {
     }
 
     @Test
+    public void writeUpdateIdClause() {
+        Update query = QueryBuilder.update("c");
+        query.with(QueryBuilder.set("a", "b"));
+        converter.writeIdClause(Comment.class, commentPk, query);
+
+        assertEquals(
+            "UPDATE c SET a='b' WHERE comment_id=5ff6eb04-6c0b-4aaa-9a12-f51af7a7d6dc AND post_id=b90fcb58-4e53-4908-9e80-4683049362dd;",
+            query.toString()
+        );
+
+        query = QueryBuilder.update("c");
+        query.with(QueryBuilder.set("a", "b"));
+        converter.writeIdClause(Post.class, postId, query);
+
+        assertEquals(
+            "UPDATE c SET a='b' WHERE id=b90fcb58-4e53-4908-9e80-4683049362dd;",
+            query.toString()
+        );
+    }
+
+    @Test
     public void writeDeleteIdClause() {
         Delete query = QueryBuilder.delete().from("c");
         converter.writeIdClause(Comment.class, commentPk, query);
@@ -126,18 +144,6 @@ public class TestMappingCassandraEntityConverter {
     }
 
     @Test
-    public void writeDeleteIdsClause() {
-        Delete query = QueryBuilder.delete().from("c");
-        List<UUID> postIds = Arrays.asList(postId, UUID.fromString("5ff6eb04-6c0b-4aaa-9a12-f51af7a7d6dc"));
-        converter.writeIdsClause(Post.class, postIds, query);
-
-        assertEquals(
-            "DELETE  FROM c WHERE id IN (b90fcb58-4e53-4908-9e80-4683049362dd,5ff6eb04-6c0b-4aaa-9a12-f51af7a7d6dc);",
-            query.toString()
-        );
-    }
-
-    @Test
     public void writeSelectIdsClause() {
         Select query = QueryBuilder.select().all().from("c");
         List<UUID> postIds = Arrays.asList(postId, UUID.fromString("5ff6eb04-6c0b-4aaa-9a12-f51af7a7d6dc"));
@@ -146,6 +152,32 @@ public class TestMappingCassandraEntityConverter {
         assertEquals(
             "SELECT * FROM c WHERE id IN (b90fcb58-4e53-4908-9e80-4683049362dd,5ff6eb04-6c0b-4aaa-9a12-f51af7a7d6dc);",
             query.toString()
+        );
+    }
+
+    @Test
+    public void writeUpdateIdsClause() {
+        Update query = QueryBuilder.update("c");
+        query.with(QueryBuilder.set("a", "b"));
+
+        List<UUID> postIds = Arrays.asList(postId, UUID.fromString("5ff6eb04-6c0b-4aaa-9a12-f51af7a7d6dc"));
+        converter.writeIdsClause(Post.class, postIds, query);
+
+        assertEquals(
+            "UPDATE c SET a='b' WHERE id IN (b90fcb58-4e53-4908-9e80-4683049362dd,5ff6eb04-6c0b-4aaa-9a12-f51af7a7d6dc);",
+            query.toString()
+        );
+    }
+
+    @Test
+    public void writeDeleteIdsClause() {
+        Delete query = QueryBuilder.delete().from("c");
+        List<UUID> postIds = Arrays.asList(postId, UUID.fromString("5ff6eb04-6c0b-4aaa-9a12-f51af7a7d6dc"));
+        converter.writeIdsClause(Post.class, postIds, query);
+
+        assertEquals(
+                "DELETE  FROM c WHERE id IN (b90fcb58-4e53-4908-9e80-4683049362dd,5ff6eb04-6c0b-4aaa-9a12-f51af7a7d6dc);",
+                query.toString()
         );
     }
 

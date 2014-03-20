@@ -15,6 +15,7 @@
  */
 package org.springframework.data.cassandra.convert;
 
+import com.datastax.driver.core.querybuilder.Update;
 import org.springframework.data.cassandra.mapping.CassandraPersistentEntity;
 import org.springframework.data.cassandra.mapping.CassandraPersistentProperty;
 import com.datastax.driver.core.querybuilder.Delete;
@@ -52,9 +53,13 @@ public interface CassandraEntityConverter extends EntityReader<Object, Row> {
 
     void writeIdClause(Class<?> clazz, Object id, Select query);
 
+    void writeIdClause(Class<?> clazz, Object id, Update query);
+
     void writeIdClause(Class<?> clazz, Object id, Delete query);
 
     void writeIdsClause(Class<?> clazz, Iterable ids, Select query);
+
+    void writeIdsClause(Class<?> clazz, Iterable ids, Update query);
 
     void writeIdsClause(Class<?> clazz, Iterable ids, Delete query);
 
