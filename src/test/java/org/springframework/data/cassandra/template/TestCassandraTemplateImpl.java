@@ -18,6 +18,7 @@ package org.springframework.data.cassandra.template;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.SimpleStatement;
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.querybuilder.QueryBuilder;
 import org.easymock.EasyMockRunner;
 import org.easymock.Mock;
 import org.easymock.TestSubject;
@@ -34,6 +35,8 @@ import static org.junit.Assert.*;
  */
 @RunWith(EasyMockRunner.class)
 public class TestCassandraTemplateImpl {
+    final static private BatchAttributes ba = new BatchAttributes();
+
     @Mock
     Session session;
     @TestSubject
@@ -59,6 +62,45 @@ public class TestCassandraTemplateImpl {
         assertNull(template.execute(statement));
 
         verify(session);
+    }
+
+    @Test
+    public void simpleBatch() {
+        Statement statement = QueryBuilder.insertInto("c");
+        Statement statement1 = new SimpleStatement("ss");
+        expect(session.execute(statement1)).andReturn(null);
+        replay(session);
+
+        template.startBatch(ba);
+        template.execute(statement);
+        template.execute(statement1);
+
+        verify(session);
+
+        reset(session);
+        expect(session.execute(anyObject(Statement.class))).andReturn(null);
+        replay(session);
+
+        template.applyBatch();
+
+        verify(session);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void notStartedBatch() {
+        template.applyBatch();
+    }
+
+    @Test
+    public void nestedBatch() {
+        template.startBatch(ba);
+
+        try {
+            template.startBatch(ba);
+            fail("expected IllegalStateException");
+        } catch (IllegalStateException e) {}
+
+        template.cancelBatch();
     }
 
 }
