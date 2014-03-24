@@ -87,20 +87,49 @@ public class TestCassandraTemplateImpl {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void notStartedBatch() {
+    public void notStartedBatchApply() {
         template.applyBatch();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void notStartedBatchCancel() {
+        template.cancelBatch();
+    }
+
+    @Test
+    public void nestedBatchStartFail() {
+        template.startBatch(ba);
+
+        BatchAttributes ba1 = new BatchAttributes();
+        ba1.setTimestamp(10000L);
+
+        try {
+            template.startBatch(ba1);
+            fail("expected IllegalStateException");
+        } catch (IllegalStateException e) {
+            template.cancelBatch();
+        }
+
     }
 
     @Test
     public void nestedBatch() {
+        Statement statement0 = QueryBuilder.insertInto("c");
+        Statement statement1 = QueryBuilder.insertInto("d");
+
+        expect(session.execute(anyObject(Statement.class))).andReturn(null);
+        replay(session);
+
         template.startBatch(ba);
+        template.execute(statement0);
 
-        try {
-            template.startBatch(ba);
-            fail("expected IllegalStateException");
-        } catch (IllegalStateException e) {}
+        template.startBatch(ba);
+        template.execute(statement1);
 
-        template.cancelBatch();
+        template.applyBatch();
+        template.applyBatch();
+
+        verify(session);
     }
 
 }

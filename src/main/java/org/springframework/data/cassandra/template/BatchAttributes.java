@@ -52,6 +52,28 @@ final public class BatchAttributes {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BatchAttributes)) return false;
+
+        final BatchAttributes that = (BatchAttributes) o;
+
+        if (unlogged != that.unlogged) return false;
+        if (consistencyLevel != that.consistencyLevel) return false;
+        if (timestamp != null ? !timestamp.equals(that.timestamp) : that.timestamp != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = timestamp != null ? timestamp.hashCode() : 0;
+        result = 31 * result + (consistencyLevel != null ? consistencyLevel.hashCode() : 0);
+        result = 31 * result + (unlogged ? 1 : 0);
+        return result;
+    }
+
+    @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("BatchAttributes{");
         sb.append("timestamp=").append(timestamp);

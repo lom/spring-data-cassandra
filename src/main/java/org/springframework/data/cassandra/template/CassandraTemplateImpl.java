@@ -79,10 +79,14 @@ public class CassandraTemplateImpl implements CassandraTemplate {
         if (log.isTraceEnabled())
             log.trace("starting batch with attributes {}", batchAttributes);
 
-        if (batchContext.get() == null) {
+        final BatchContext bc = batchContext.get();
+
+        if (bc == null) {
             batchContext.set(new BatchContext(batchAttributes));
+        } else if (bc.isSameAttributes(batchAttributes)) {
+            bc.incrementNestingLevel();
         } else {
-            throw new IllegalStateException("Nested batch is not supported");
+            throw new IllegalStateException("Nested batch with different attributes are not supported");
         }
     }
 
@@ -91,7 +95,16 @@ public class CassandraTemplateImpl implements CassandraTemplate {
         if (log.isTraceEnabled())
             log.trace("cancelling batch");
 
-        batchContext.set(null);
+        final BatchContext bc = batchContext.get();
+
+        if (bc == null)
+            throw new IllegalStateException("Trying to cancel batch, but it is not started");
+
+        if (bc.isZeroNestingLevel()) {
+            batchContext.set(null);
+        } else {
+            bc.decrementNestingLevel();
+        }
     }
 
     @Override
@@ -100,10 +113,15 @@ public class CassandraTemplateImpl implements CassandraTemplate {
             log.trace("applying batch");
 
         final BatchContext bc = batchContext.get();
+
         if (bc == null)
             throw new IllegalStateException("Trying to apply batch, but it is not started");
 
-        execute(bc.getBatchStatement());
+        if (bc.isZeroNestingLevel()) {
+            execute(bc.getBatchStatement());
+        } else {
+            bc.decrementNestingLevel();
+        }
     }
 
     private boolean isModifyingStatement(Statement statement) {
@@ -111,9 +129,13 @@ public class CassandraTemplateImpl implements CassandraTemplate {
     }
 
     final protected class BatchContext {
-        final Batch batchStatement;
+        final private Batch batchStatement;
+        final private BatchAttributes batchAttributes;
+        private int nestingLevel;
 
         protected BatchContext(BatchAttributes batchAttributes) {
+            this.batchAttributes = batchAttributes;
+
             batchStatement = batchAttributes.isUnlogged()
                     ? QueryBuilder.unloggedBatch(new RegularStatement[]{})
                     : QueryBuilder.batch(new RegularStatement[]{});
@@ -129,8 +151,24 @@ public class CassandraTemplateImpl implements CassandraTemplate {
             batchStatement.add((RegularStatement) statement);
         }
 
-        public Batch getBatchStatement() {
+        protected Batch getBatchStatement() {
             return batchStatement;
+        }
+
+        protected boolean isZeroNestingLevel() {
+            return nestingLevel == 0;
+        }
+
+        protected void incrementNestingLevel() {
+            nestingLevel++;
+        }
+
+        protected void decrementNestingLevel() {
+            nestingLevel--;
+        }
+
+        protected boolean isSameAttributes(BatchAttributes batchAttributes) {
+            return this.batchAttributes.equals(batchAttributes);
         }
 
     }
