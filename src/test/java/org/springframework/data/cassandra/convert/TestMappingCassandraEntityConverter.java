@@ -16,11 +16,12 @@
 package org.springframework.data.cassandra.convert;
 
 import com.datastax.driver.core.querybuilder.*;
-import org.springframework.data.cassandra.mapping.CassandraPersistentEntity;
+import org.junit.Test;
 import org.springframework.data.cassandra.entity.Comment;
+import org.springframework.data.cassandra.entity.CommentEmbedded;
 import org.springframework.data.cassandra.entity.CommentPk;
 import org.springframework.data.cassandra.entity.Post;
-import org.junit.Test;
+import org.springframework.data.cassandra.mapping.CassandraPersistentEntity;
 import org.springframework.data.mapping.model.MappingException;
 
 import java.util.Arrays;
@@ -71,7 +72,7 @@ public class TestMappingCassandraEntityConverter {
         converter.writeInsert(makeComment(), query);
 
         assertEquals(
-            "INSERT INTO c(body_text,comment_id,post_id) VALUES ('some text',5ff6eb04-6c0b-4aaa-9a12-f51af7a7d6dc,b90fcb58-4e53-4908-9e80-4683049362dd);",
+            "INSERT INTO c(body_text,field_double,comment_id,post_id) VALUES ('some text',123.12,5ff6eb04-6c0b-4aaa-9a12-f51af7a7d6dc,b90fcb58-4e53-4908-9e80-4683049362dd);",
             query.toString()
         );
 
@@ -79,7 +80,7 @@ public class TestMappingCassandraEntityConverter {
         converter.writeInsert(makePost(), query1);
 
         assertEquals(
-                "INSERT INTO c(body_text,id,title) VALUES ('some body',b90fcb58-4e53-4908-9e80-4683049362dd,'some title');",
+                "INSERT INTO c(body_text,id,title,type) VALUES ('some body',b90fcb58-4e53-4908-9e80-4683049362dd,'some title','TYPE2');",
                 query1.toString()
         );
     }
@@ -197,7 +198,7 @@ public class TestMappingCassandraEntityConverter {
         query = selection.from("c");
 
         assertEquals(
-            "SELECT body_text,id,title FROM c;",
+            "SELECT body_text,id,title,type FROM c;",
             query.toString()
         );
     }
@@ -249,6 +250,9 @@ public class TestMappingCassandraEntityConverter {
         comment.setId(commentPk);
         comment.setText("some text");
 
+        comment.setCommentEmbedded(new CommentEmbedded());
+        comment.getCommentEmbedded().setFieldDouble(123.12D);
+
         return comment;
     }
 
@@ -257,6 +261,7 @@ public class TestMappingCassandraEntityConverter {
         post.setId(postId);
         post.setTitle("some title");
         post.setBody("some body");
+        post.setType(Post.PostType.TYPE2);
 
         return post;
     }

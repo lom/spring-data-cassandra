@@ -37,5 +37,5 @@ public interface CassandraPersistentProperty extends PersistentProperty<Cassandr
 	 * @return
 	 */
 	boolean isIndexed();
-	
+
 }

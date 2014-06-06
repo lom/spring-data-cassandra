@@ -33,6 +33,7 @@ final public class Post {
     private String title;
     @Column("body_text")
     private String body;
+    private PostType type;
 
     public UUID getId() {
         return id;
@@ -58,13 +59,26 @@ final public class Post {
         this.body = body;
     }
 
+    public PostType getType() {
+        return type;
+    }
+
+    public void setType(PostType type) {
+        this.type = type;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Post{");
         sb.append("id=").append(id);
         sb.append(", title='").append(title).append('\'');
         sb.append(", body='").append(body).append('\'');
+        sb.append(", type='").append(type).append('\'');
         sb.append('}');
         return sb.toString();
+    }
+
+    public enum PostType {
+        TYPE1, TYPE2;
     }
 }

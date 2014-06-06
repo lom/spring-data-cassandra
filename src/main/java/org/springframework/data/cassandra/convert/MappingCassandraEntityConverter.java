@@ -50,6 +50,7 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
             new CassandraMappingContext();
     protected GenericConversionService conversionService = new CassandraConversionService();
     protected EntityInstantiators instantiators = new EntityInstantiators();
+    protected CassandraPersistentTypeResolver persistentTypeResolver = new CassandraPersistentTypeResolver();
 
     /**
      * Creates default mapping converter
@@ -77,6 +78,14 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
 
     public void setConversionService(GenericConversionService conversionService) {
         this.conversionService = conversionService;
+    }
+
+    public CassandraPersistentTypeResolver getPersistentTypeResolver() {
+        return persistentTypeResolver;
+    }
+
+    public void setPersistentTypeResolver(CassandraPersistentTypeResolver persistentTypeResolver) {
+        this.persistentTypeResolver = persistentTypeResolver;
     }
 
     @SuppressWarnings("unchecked")
@@ -158,7 +167,7 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
         persistentEntity.doWithProperties(new PropertyHandler<CassandraPersistentProperty>() {
             @Override
             public void doWithPersistentProperty(CassandraPersistentProperty prop) {
-                final Object value = wrapper.getProperty(prop, prop.getType(), false);
+                final Object value = wrapper.getProperty(prop, persistentTypeResolver.getPersistentType(prop.getType()), false);
                 if (value == null)
                     return;
 
