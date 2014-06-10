@@ -18,6 +18,7 @@ package org.springframework.data.cassandra.convert;
 import org.joda.time.DateTime;
 import org.springframework.core.convert.converter.GenericConverter.ConvertiblePair;
 
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.HashSet;
@@ -35,6 +36,7 @@ final public class CassandraPersistentTypeResolver {
         pairs.add(new ConvertiblePair(DateTime.class, Date.class));
         pairs.add(new ConvertiblePair(byte[].class, ByteBuffer.class));
         pairs.add(new ConvertiblePair(Enum.class, String.class));
+        pairs.add(new ConvertiblePair(URI.class, String.class));
     }
 
     public Class<?> getPersistentType(Class<?> clazz) {

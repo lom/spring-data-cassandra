@@ -35,6 +35,8 @@ final public class CassandraConversionService extends DefaultConversionService {
         // register byteBuf converters
         addConverter(new ArrayOfBytesToByteBufConverter());
         addConverter(new ByteBufToArrayOfBytesConverter());
+        addConverter(new UriToStringConverter());
+        addConverter(new StringToUriConverter());
     }
 
 }

@@ -19,6 +19,7 @@ import com.datastax.driver.core.DataType;
 import org.joda.time.DateTime;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
 
@@ -37,6 +38,7 @@ final public class CassandraSimpleTypes {
         }
 
         dataTypes.add(DateTime.class);
+        dataTypes.add(URI.class);
 
         HOLDER = new SimpleTypeHolder(Collections.unmodifiableSet(dataTypes), true);
     }
