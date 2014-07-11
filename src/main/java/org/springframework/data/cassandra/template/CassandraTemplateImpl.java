@@ -119,6 +119,7 @@ public class CassandraTemplateImpl implements CassandraTemplate {
 
         if (bc.isZeroNestingLevel()) {
             execute(bc.getBatchStatement());
+            batchContext.set(null);
         } else {
             bc.decrementNestingLevel();
         }

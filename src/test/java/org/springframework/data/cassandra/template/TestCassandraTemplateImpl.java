@@ -72,17 +72,26 @@ public class TestCassandraTemplateImpl {
         replay(session);
 
         template.startBatch(ba);
-        template.execute(statement);
-        template.execute(statement1);
+        template.execute(statement);    // write, goes to batch
+        template.execute(statement1);   // read, executed now
 
         verify(session);
 
         reset(session);
+
         expect(session.execute(anyObject(Statement.class))).andReturn(null);
         replay(session);
 
         template.applyBatch();
 
+        verify(session);
+
+        // execution modifying statements after batch
+        reset(session);
+        expect(session.execute(anyObject(Statement.class))).andReturn(null);
+        replay(session);
+
+        template.execute(statement);
         verify(session);
     }
 
