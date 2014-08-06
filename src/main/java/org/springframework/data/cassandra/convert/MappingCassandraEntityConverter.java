@@ -211,7 +211,11 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
             makeIdClauseListEntity(clauseList, id);
         } else {
             clauseList.add(
-                    QueryBuilder.eq(idProperty.getColumnName(), conversionService.convert(id, idProperty.getType())));
+                    QueryBuilder.eq(
+                            idProperty.getColumnName(),
+                            conversionService.convert(id, getPersistentPropertyType(idProperty))
+                    )
+            );
         }
 
         return clauseList;
@@ -225,7 +229,7 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
         persistentEntity.doWithProperties(new PropertyHandler<CassandraPersistentProperty>() {
             @Override
             public void doWithPersistentProperty(CassandraPersistentProperty prop) {
-                final Object convertedValue = wrapper.getProperty(prop, prop.getType(), false);
+                final Object convertedValue = wrapper.getProperty(prop, getPersistentPropertyType(prop), false);
                 if (convertedValue == null)
                     return;
 
@@ -323,7 +327,7 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
         final ArrayList convertedIds = new ArrayList(20);
 
         for (final Object id: ids) {
-            convertedIds.add(conversionService.convert(id, idProperty.getType()));
+            convertedIds.add(conversionService.convert(id, getPersistentPropertyType(idProperty)));
         }
 
         return convertedIds.toArray();
@@ -331,6 +335,10 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
 
     private CassandraPersistentEntity getPersistentEntity(Class<?> clazz) {
         return (CassandraPersistentEntity) mappingContext.getPersistentEntity(clazz);
+    }
+
+    private Class<?> getPersistentPropertyType(CassandraPersistentProperty persistentProperty) {
+        return persistentTypeResolver.getPersistentType(persistentProperty.getType());
     }
 
 }

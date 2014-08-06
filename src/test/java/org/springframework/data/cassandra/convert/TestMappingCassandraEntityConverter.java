@@ -131,7 +131,7 @@ public class TestMappingCassandraEntityConverter {
         converter.writeIdClause(Comment.class, commentPk, query);
 
         assertEquals(
-            "DELETE  FROM c WHERE comment_id=5ff6eb04-6c0b-4aaa-9a12-f51af7a7d6dc AND post_id=b90fcb58-4e53-4908-9e80-4683049362dd;",
+            "DELETE FROM c WHERE comment_id=5ff6eb04-6c0b-4aaa-9a12-f51af7a7d6dc AND post_id=b90fcb58-4e53-4908-9e80-4683049362dd;",
             query.toString()
         );
 
@@ -139,7 +139,7 @@ public class TestMappingCassandraEntityConverter {
         converter.writeIdClause(Post.class, postId, query);
 
         assertEquals(
-            "DELETE  FROM c WHERE id=b90fcb58-4e53-4908-9e80-4683049362dd;",
+            "DELETE FROM c WHERE id=b90fcb58-4e53-4908-9e80-4683049362dd;",
             query.toString()
         );
     }
@@ -177,7 +177,7 @@ public class TestMappingCassandraEntityConverter {
         converter.writeIdsClause(Post.class, postIds, query);
 
         assertEquals(
-                "DELETE  FROM c WHERE id IN (b90fcb58-4e53-4908-9e80-4683049362dd,5ff6eb04-6c0b-4aaa-9a12-f51af7a7d6dc);",
+                "DELETE FROM c WHERE id IN (b90fcb58-4e53-4908-9e80-4683049362dd,5ff6eb04-6c0b-4aaa-9a12-f51af7a7d6dc);",
                 query.toString()
         );
     }

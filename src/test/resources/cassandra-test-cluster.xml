@@ -7,8 +7,8 @@
         <property name="contactPoints" value="dev-sandbox1.a1s,dev-sandbox2.a1s,dev-sandbox3.a1s" />
         <property name="authProvider">
             <bean class="com.datastax.driver.core.PlainTextAuthProvider">
-                <constructor-arg value="org.springframework.data.cassandra" />
-                <constructor-arg value="org.springframework.data.cassandra" />
+                <constructor-arg value="cassandra" />
+                <constructor-arg value="cassandra" />
             </bean>
         </property>
     </bean>
