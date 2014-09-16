@@ -46,7 +46,7 @@ public class CassandraTemplateImpl implements CassandraTemplate {
 
     @Override
     public ResultSet execute(String query) {
-        log.trace(query);
+        log.trace("{}", query);
 
         try {
             return session.execute(query);
@@ -118,8 +118,9 @@ public class CassandraTemplateImpl implements CassandraTemplate {
             throw new IllegalStateException("Trying to apply batch, but it is not started");
 
         if (bc.isZeroNestingLevel()) {
-            execute(bc.getBatchStatement());
             batchContext.set(null);
+            if (!bc.isEmpty())
+                execute(bc.getBatchStatement());
         } else {
             bc.decrementNestingLevel();
         }
@@ -133,6 +134,7 @@ public class CassandraTemplateImpl implements CassandraTemplate {
         final private Batch batchStatement;
         final private BatchAttributes batchAttributes;
         private int nestingLevel;
+        private boolean empty = true;
 
         protected BatchContext(BatchAttributes batchAttributes) {
             this.batchAttributes = batchAttributes;
@@ -149,6 +151,7 @@ public class CassandraTemplateImpl implements CassandraTemplate {
         }
 
         protected void addStatement(Statement statement) {
+            empty = false;
             batchStatement.add((RegularStatement) statement);
         }
 
@@ -170,6 +173,10 @@ public class CassandraTemplateImpl implements CassandraTemplate {
 
         protected boolean isSameAttributes(BatchAttributes batchAttributes) {
             return this.batchAttributes.equals(batchAttributes);
+        }
+
+        protected boolean isEmpty() {
+            return empty;
         }
 
     }

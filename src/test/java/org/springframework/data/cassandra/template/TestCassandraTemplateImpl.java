@@ -141,4 +141,15 @@ public class TestCassandraTemplateImpl {
         verify(session);
     }
 
+    @Test
+    public void emptyBatch() {
+        replay(session);
+
+        template.startBatch(ba);
+        template.applyBatch();
+
+        verify(session);
+    }
+
+
 }
