@@ -118,9 +118,9 @@ public class CassandraTemplateImpl implements CassandraTemplate {
             throw new IllegalStateException("Trying to apply batch, but it is not started");
 
         if (bc.isZeroNestingLevel()) {
-            batchContext.set(null);
             if (!bc.isEmpty())
                 execute(bc.getBatchStatement());
+            batchContext.set(null);
         } else {
             bc.decrementNestingLevel();
         }
