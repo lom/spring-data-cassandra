@@ -7,7 +7,7 @@
     <groupId>org.springframework.data</groupId>
     <artifactId>spring-data-cassandra2</artifactId>
     <packaging>jar</packaging>
-    <version>0.9</version>
+    <version>0.10</version>
     <name>Spring Data Cassandra</name>
 
     <developers>
@@ -79,7 +79,6 @@
         <netty-all.version>4.0.12.Final</netty-all.version>
         <cassanra-driver.version>2.0.3</cassanra-driver.version>
         <spring-data.version>1.7.0.M1</spring-data.version>
-        <spring-dao.version>2.0.8</spring-dao.version>
 
         <!-- maven plugins -->
         <maven.compile.source>1.7</maven.compile.source>
@@ -256,8 +255,8 @@
 
         <dependency>
             <groupId>org.springframework</groupId>
-            <artifactId>spring-dao</artifactId>
-            <version>${spring-dao.version}</version>
+            <artifactId>spring-tx</artifactId>
+            <version>${spring.version}</version>
         </dependency>
 
         <dependency>
