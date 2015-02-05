@@ -46,6 +46,7 @@ public class TestCassandraPropertyValueProvider {
     @Test
     public void rowIsNull() {
         Row row = createStrictMock(Row.class);
+        expect(row.getColumnDefinitions()).andReturn(null);
         expect(row.isNull("column")).andReturn(true);
         replay(row);
 
@@ -59,12 +60,13 @@ public class TestCassandraPropertyValueProvider {
     @Test
     public void rowHasItem() {
         Row row = createStrictMock(Row.class);
-        expect(row.isNull("column")).andReturn(false);
-
         ColumnDefinitions cd = createNiceMock(ColumnDefinitions.class);
-        expect(cd.getType("column")).andReturn(DataType.ascii());
+
         expect(row.getColumnDefinitions()).andReturn(cd);
-        expect(row.getBytesUnsafe("column")).andReturn(Charset.forName("UTF-8").encode("some text"));
+        expect(row.isNull("column")).andReturn(false);
+        expect(row.isNull(0)).andReturn(false);
+        expect(cd.getType(0)).andReturn(DataType.ascii());
+        expect(row.getString(0)).andReturn("some text");
 
         replay(row, cd);
 

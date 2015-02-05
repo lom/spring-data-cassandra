@@ -16,11 +16,9 @@
 package org.springframework.data.cassandra.convert;
 
 import org.springframework.data.cassandra.mapping.CassandraPersistentProperty;
-import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.Row;
 import org.springframework.data.mapping.model.PropertyValueProvider;
 import org.springframework.util.Assert;
-import java.nio.ByteBuffer;
 
 /**
  * {@link PropertyValueProvider} to read property values from a {@link Row}.
@@ -28,7 +26,7 @@ import java.nio.ByteBuffer;
  * @author Alexandr V Solomatin
  */
 public class CassandraPropertyValueProvider implements PropertyValueProvider<CassandraPersistentProperty> {
-
+    private final ColumnReader columnReader;
 	private final Row source;
 
 	/**
@@ -39,6 +37,7 @@ public class CassandraPropertyValueProvider implements PropertyValueProvider<Cas
 	public CassandraPropertyValueProvider(Row source) {
 		Assert.notNull(source);
 		this.source = source;
+        columnReader = new ColumnReader(source);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -49,10 +48,7 @@ public class CassandraPropertyValueProvider implements PropertyValueProvider<Cas
 			return null;
 		}
 
-		final DataType columnType = source.getColumnDefinitions().getType(columnName);
-		final ByteBuffer bytes = source.getBytesUnsafe(columnName);
-
-		return (T) columnType.deserialize(bytes);
+        return (T)columnReader.get(columnName);
 	}
 	
 }
