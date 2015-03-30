@@ -15,7 +15,9 @@
  */
 package org.springframework.data.cassandra.repository;
 
+import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.cassandra.convert.CassandraEntityConverter;
+import org.springframework.data.cassandra.core.CassandraExceptionTranslator;
 import org.springframework.data.cassandra.mapping.CassandraPersistentEntity;
 import org.springframework.data.cassandra.template.CassandraTemplate;
 import com.datastax.driver.core.ConsistencyLevel;
@@ -35,6 +37,8 @@ import java.util.*;
  * @author Alexandr V Solomatin
  */
 abstract public class BaseCassandraRepository<T, ID extends Serializable> implements CassandraRepository<T, ID> {
+    final static private PersistenceExceptionTranslator EXCEPTION_TRANSLATOR = new CassandraExceptionTranslator();
+
     protected CassandraTemplate template;
     protected CassandraEntityConverter converter;
     protected CassandraPersistentEntity persistentEntity;
@@ -252,16 +256,26 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
 
         @Override
         public boolean hasNext() {
-            return delegate.hasNext();
+            try {
+                return delegate.hasNext();
+            } catch (RuntimeException e) {
+                final RuntimeException translated = EXCEPTION_TRANSLATOR.translateExceptionIfPossible(e);
+                throw  translated == null ? e : translated;
+            }
         }
 
         @Override
         public T next() {
-            final Row row = delegate.next();
-            if (row == null)
-                return null;
+            try {
+                final Row row = delegate.next();
+                if (row == null)
+                    return null;
 
-            return (T)converter.read(getEntityClass(), row);
+                return (T)converter.read(getEntityClass(), row);
+            } catch (RuntimeException e) {
+                final RuntimeException translated = EXCEPTION_TRANSLATOR.translateExceptionIfPossible(e);
+                throw  translated == null ? e : translated;
+            }
         }
 
         @Override
