@@ -169,7 +169,10 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
 
     @Override
     public void deleteAll() {
-        template.execute(QueryBuilder.truncate(getTable()));
+        final Statement query = QueryBuilder.truncate(getTable());
+        queryWriteOptions(query);
+
+        template.execute(query);
     }
 
     protected String c(String path) {
