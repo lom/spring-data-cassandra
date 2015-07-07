@@ -234,7 +234,7 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
     }
 
     protected void queryReadOptions(final Statement query) {
-        query.setConsistencyLevel(ConsistencyLevel.ONE);
+        query.setConsistencyLevel(ConsistencyLevel.QUORUM);
     }
 
     protected void queryWriteOptions(final Statement query) {
