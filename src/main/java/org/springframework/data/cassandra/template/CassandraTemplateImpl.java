@@ -64,7 +64,7 @@ public class CassandraTemplateImpl implements CassandraTemplate {
 
             return null;
         } else {
-            log.trace("{}", statement);
+            log.trace("{} consistency={}", statement, statement.getConsistencyLevel());
 
             try {
                 return session.execute(statement);
