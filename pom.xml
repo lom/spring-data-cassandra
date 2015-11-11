@@ -7,7 +7,7 @@
     <groupId>org.springframework.data</groupId>
     <artifactId>spring-data-cassandra2</artifactId>
     <packaging>jar</packaging>
-    <version>0.17</version>
+    <version>0.18</version>
     <name>Spring Data Cassandra</name>
 
     <developers>
@@ -76,7 +76,7 @@
         <ehcache.version>2.6.6</ehcache.version>
         <javassist.version>3.18.0-GA</javassist.version>
         <netty-all.version>4.0.12.Final</netty-all.version>
-        <cassanra-driver.version>2.1.6</cassanra-driver.version>
+        <cassanra-driver.version>2.1.9</cassanra-driver.version>
         <spring-data.version>1.7.0.M1</spring-data.version>
 
         <!-- maven plugins -->
