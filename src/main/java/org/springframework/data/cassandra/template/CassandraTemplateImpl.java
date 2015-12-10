@@ -15,10 +15,7 @@
  */
 package org.springframework.data.cassandra.template;
 
-import com.datastax.driver.core.RegularStatement;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.DriverException;
 import com.datastax.driver.core.querybuilder.*;
 import org.slf4j.Logger;
@@ -71,6 +68,28 @@ public class CassandraTemplateImpl implements CassandraTemplate {
             } catch (DriverException e) {
                 throw EXCEPTION_TRANSLATOR.translateExceptionIfPossible(e);
             }
+        }
+    }
+
+    @Override
+    public ResultSetFuture executeAsync(String query) {
+        log.trace("{}", query);
+
+        try {
+            return session.executeAsync(query);
+        } catch (DriverException e) {
+            throw EXCEPTION_TRANSLATOR.translateExceptionIfPossible(e);
+        }
+    }
+
+    @Override
+    public ResultSetFuture executeAsync(Statement statement) {
+        log.trace("{} consistency={}", statement, statement.getConsistencyLevel());
+
+        try {
+            return session.executeAsync(statement);
+        } catch (DriverException e) {
+            throw EXCEPTION_TRANSLATOR.translateExceptionIfPossible(e);
         }
     }
 

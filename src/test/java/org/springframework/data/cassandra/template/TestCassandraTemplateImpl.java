@@ -65,6 +65,28 @@ public class TestCassandraTemplateImpl {
     }
 
     @Test
+    public void executeAsyncString() {
+        String query = "query";
+        expect(session.executeAsync(query)).andReturn(null);
+        replay(session);
+
+        assertNull(template.executeAsync(query));
+
+        verify(session);
+    }
+
+    @Test
+    public void executeAsyncStatement() {
+        Statement statement = new SimpleStatement("test statement");
+        expect(session.executeAsync(statement)).andReturn(null);
+        replay(session);
+
+        assertNull(template.executeAsync(statement));
+
+        verify(session);
+    }
+
+    @Test
     public void simpleBatch() {
         Statement statement = QueryBuilder.insertInto("c");
         Statement statement1 = new SimpleStatement("ss");

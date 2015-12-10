@@ -16,6 +16,7 @@
 package org.springframework.data.cassandra.template;
 
 import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Statement;
 
 /**
@@ -27,6 +28,8 @@ public interface CassandraTemplate {
 
     ResultSet execute(String query);
     ResultSet execute(Statement statement);
+    ResultSetFuture executeAsync(String query);
+    ResultSetFuture executeAsync(Statement statement);
 
     void startBatch(BatchAttributes batchAttributes);
     void cancelBatch();
