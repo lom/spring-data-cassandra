@@ -15,12 +15,16 @@
  */
 package org.springframework.data.cassandra.entity;
 
+import org.springframework.data.cassandra.repository.CassandraRepository;
+
+import java.util.UUID;
+
 /**
  * Date: 18.03.14 18:11
  *
  * @author Alexandr V Solomatin
  */
-public interface PostDao {
+public interface PostDao extends CassandraRepository<Post,UUID> {
     void someMethod();
     void someMethod1();
 }

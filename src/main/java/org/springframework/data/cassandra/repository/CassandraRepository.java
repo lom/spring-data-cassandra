@@ -18,6 +18,7 @@ package org.springframework.data.cassandra.repository;
 import org.springframework.data.repository.CrudRepository;
 
 import java.io.Serializable;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Date: 04.02.14 17:31
@@ -25,4 +26,14 @@ import java.io.Serializable;
  * @author Alexandr V Solomatin
  */
 public interface CassandraRepository<T, ID extends Serializable> extends CrudRepository<T, ID>  {
+    <S extends T> CompletableFuture<S> saveAsync(S entity);
+    CompletableFuture<T> findOneAsync(ID id);
+    CompletableFuture<Boolean> existsAsync(ID id);
+    CompletableFuture<Iterable<T>> findAllAsync();
+    CompletableFuture<Iterable<T>> findAllAsync (Iterable<ID> ids);
+    CompletableFuture<Long> countAsync();
+    CompletableFuture<Void> deleteAsync(ID id);
+    CompletableFuture<Void> deleteAsync(T entity);
+    CompletableFuture<Void> deleteAsync(Iterable<? extends T> entities);
+    CompletableFuture<Void> deleteAllAsync();
 }

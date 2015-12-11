@@ -4,7 +4,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
 
     <bean id="cassandraClusterFactory" class="org.springframework.data.cassandra.core.CassandraClusterFactoryBean">
-        <property name="contactPoints" value="dev-sandbox1.a1s,dev-sandbox2.a1s,dev-sandbox3.a1s" />
+        <property name="contactPoints" value="dev-cassandra1.a1s,dev-cassandra2.a1s,dev-cassandra3.a1s" />
         <property name="authProvider">
             <bean class="com.datastax.driver.core.PlainTextAuthProvider">
                 <constructor-arg value="cassandra" />
@@ -15,7 +15,7 @@
 
     <bean class="org.springframework.data.cassandra.core.CassandraSessionFactoryBean">
         <property name="cluster" ref="cassandraClusterFactory" />
-        <property name="keyspace" value="test" />
+        <property name="keyspace" value="sdp" />
     </bean>
 
 </beans>

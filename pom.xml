@@ -7,7 +7,7 @@
     <groupId>org.springframework.data</groupId>
     <artifactId>spring-data-cassandra2</artifactId>
     <packaging>jar</packaging>
-    <version>0.19</version>
+    <version>1.01</version>
     <name>Spring Data Cassandra</name>
 
     <developers>
@@ -80,8 +80,8 @@
         <spring-data.version>1.7.0.M1</spring-data.version>
 
         <!-- maven plugins -->
-        <maven.compile.source>1.7</maven.compile.source>
-        <maven.compile.target>1.7</maven.compile.target>
+        <maven.compile.source>1.8</maven.compile.source>
+        <maven.compile.target>1.8</maven.compile.target>
         <maven-pmd-plugin.version>3.0.1</maven-pmd-plugin.version>
         <maven-checkstyle-plugin.version>2.10</maven-checkstyle-plugin.version>
         <findbugs-maven-plugin.version>2.5.2</findbugs-maven-plugin.version>

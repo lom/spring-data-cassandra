@@ -15,21 +15,22 @@
  */
 package org.springframework.data.cassandra.repository;
 
+import com.datastax.driver.core.*;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.cassandra.convert.CassandraEntityConverter;
 import org.springframework.data.cassandra.core.CassandraExceptionTranslator;
 import org.springframework.data.cassandra.mapping.CassandraPersistentEntity;
 import org.springframework.data.cassandra.template.CassandraTemplate;
-import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.*;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.util.Assert;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 /**
  * Date: 28.01.14 17:27
@@ -65,6 +66,15 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
     }
 
     @Override
+    public <S extends T> CompletableFuture<S> saveAsync(final S entity) {
+        final Insert query = baseInsert();
+
+        converter.writeInsert(entity, query);
+
+        return executeQueryAsyncAndTransformResult(query, rs -> entity);
+    }
+
+    @Override
     public <S extends T> Iterable<S> save(Iterable<S> entities) {
         for (final S entity: entities) {
             save(entity);
@@ -83,6 +93,15 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
     }
 
     @Override
+    public CompletableFuture<T> findOneAsync(ID id) {
+        final Select query = baseSelect();
+
+        converter.writeIdClause(getEntityClass(), id, query);
+
+        return executeQueryAsyncAndTransformResult(query, this::getByResultSet);
+    }
+
+    @Override
     public boolean exists(ID id) {
         final Select query = QueryBuilder.select().countAll().from(getTable());
         queryReadOptions(query);
@@ -93,10 +112,27 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
     }
 
     @Override
+    public CompletableFuture<Boolean> existsAsync(ID id) {
+        final Select query = QueryBuilder.select().countAll().from(getTable());
+        queryReadOptions(query);
+
+        converter.writeIdClause(getEntityClass(), id, query);
+
+        return executeQueryAsyncAndTransformResult(query, rs -> !rs.isExhausted());
+    }
+
+    @Override
     public Iterable<T> findAll() {
         final Select query = baseSelect();
 
         return getListByQuery(query);
+    }
+
+    @Override
+    public CompletableFuture<Iterable<T>> findAllAsync() {
+        final Select query = baseSelect();
+
+        return executeQueryAsyncAndTransformResult(query, this::getListByResultSet);
     }
 
     @Override
@@ -120,6 +156,17 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
     }
 
     @Override
+    public CompletableFuture<Iterable<T>> findAllAsync(Iterable<ID> ids) {
+        if (persistentEntity.getIdProperty().isEntity())
+            throw new IllegalStateException("only non-composite ids supported");
+
+        final Select query = baseSelect();
+        converter.writeIdsClause(getEntityClass(), ids, query);
+
+        return executeQueryAsyncAndTransformResult(query, this::getListByResultSet);
+    }
+
+    @Override
     public long count() {
         final Select query = QueryBuilder.select().countAll().from(getTable());
         queryReadOptions(query);
@@ -132,6 +179,33 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
     }
 
     @Override
+    public CompletableFuture<Long> countAsync() {
+        final Select query = QueryBuilder.select().countAll().from(getTable());
+        queryReadOptions(query);
+
+        final CompletableFuture<Long> resultFuture = new CompletableFuture<>();
+
+        Futures.addCallback(template.executeAsync(query), new FutureCallback<ResultSet>() {
+            @Override
+            public void onSuccess(ResultSet result) {
+                if (result.isExhausted()) {
+                    resultFuture.completeExceptionally(new DataAccessResourceFailureException("empty resultSet for count query"));
+                    return;
+                }
+
+                resultFuture.complete(result.one().getLong(0));
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                resultFuture.completeExceptionally(t);
+            }
+        });
+
+        return resultFuture;
+    }
+
+    @Override
     public void delete(ID id) {
         final Delete query = baseDelete();
 
@@ -141,8 +215,22 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
     }
 
     @Override
+    public CompletableFuture<Void> deleteAsync(ID id) {
+        final Delete query = baseDelete();
+
+        converter.writeIdClause(getEntityClass(), id, query);
+
+        return executeQueryAsyncAndTransformResult(query, rs -> null);
+    }
+
+    @Override
     public void delete(T entity) {
         delete((ID) converter.getEntityId(entity));
+    }
+
+    @Override
+    public CompletableFuture<Void> deleteAsync(T entity) {
+        return deleteAsync((ID) converter.getEntityId(entity));
     }
 
     @Override
@@ -153,18 +241,32 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
                 delete(entity);
             }
         } else {
-            final ArrayList<ID> ids = new ArrayList<>(20);
-            for (final T entity: entities) {
-                ids.add((ID)converter.getEntityId(entity));
-            }
-
-            Assert.notEmpty(ids);
-
-            final Delete query = baseDelete();
-            converter.writeIdsClause(getEntityClass(), ids, query);
-
-            template.execute(query);
+            template.execute(buildDeleteByIdsQuery(entities));
         }
+    }
+
+    @Override
+    public CompletableFuture<Void> deleteAsync(Iterable<? extends T> entities) {
+        if (persistentEntity.getIdProperty().isEntity())
+            throw new IllegalStateException("only non-composite ids supported");
+
+        final Delete query = buildDeleteByIdsQuery(entities);
+
+        return executeQueryAsyncAndTransformResult(query, rs -> null);
+    }
+
+    private Delete buildDeleteByIdsQuery(Iterable<? extends T> entities) {
+        final ArrayList<ID> ids = new ArrayList<>(20);
+        for (final T entity: entities) {
+            ids.add((ID)converter.getEntityId(entity));
+        }
+
+        Assert.notEmpty(ids);
+
+        final Delete query = baseDelete();
+        converter.writeIdsClause(getEntityClass(), ids, query);
+
+        return query;
     }
 
     @Override
@@ -175,20 +277,55 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
         template.execute(query);
     }
 
+    @Override
+    public CompletableFuture<Void> deleteAllAsync() {
+        final Statement query = QueryBuilder.truncate(getTable());
+        queryWriteOptions(query);
+
+        return executeQueryAsyncAndTransformResult(query, rs -> null);
+    }
+
     protected String c(String path) {
         return converter.getColumn(path, persistentEntity);
     }
 
-    protected T getByQuery(Statement query) {
-        final ResultSet rs = template.execute(query);
+    protected <N> CompletableFuture<N> executeQueryAsyncAndTransformResult(
+            Statement query, Function<ResultSet, N> resultTransformer) {
+
+        final CompletableFuture<N> resultFuture = new CompletableFuture<>();
+
+        Futures.addCallback(template.executeAsync(query), new FutureCallback<ResultSet>() {
+            @Override
+            public void onSuccess(ResultSet result) {
+                resultFuture.complete(resultTransformer.apply(result));
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                resultFuture.completeExceptionally(t);
+            }
+        });
+
+        return resultFuture;
+    }
+
+    protected T getByResultSet(final ResultSet rs) {
         if (rs.isExhausted())
             return null;
 
         return (T)converter.read(getEntityClass(), rs.one());
     }
 
+    protected T getByQuery(Statement query) {
+        return getByResultSet(template.execute(query));
+    }
+
+    protected Iterable<T> getListByResultSet(final ResultSet rs) {
+        return resultSetToEntityIterator(rs);
+    }
+
     protected Iterable<T> getListByQuery(Statement query) {
-        return resultSetToEntityIterator(template.execute(query));
+        return getListByResultSet(template.execute(query));
     }
 
     protected String getTable() {
