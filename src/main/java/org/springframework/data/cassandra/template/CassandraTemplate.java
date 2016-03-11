@@ -34,5 +34,6 @@ public interface CassandraTemplate {
     void startBatch(BatchAttributes batchAttributes);
     void cancelBatch();
     void applyBatch();
+    ResultSetFuture applyBatchAsync();
 
 }

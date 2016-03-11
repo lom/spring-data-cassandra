@@ -145,6 +145,24 @@ public class CassandraTemplateImpl implements CassandraTemplate {
         }
     }
 
+    @Override
+    public ResultSetFuture applyBatchAsync() {
+        if (log.isTraceEnabled())
+            log.trace("applying batch");
+
+        final BatchContext bc = batchContext.get();
+
+        if (bc == null)
+            throw new IllegalStateException("Trying to apply batch, but it is not started");
+
+        if (bc.isZeroNestingLevel() && !bc.isEmpty()) {
+            batchContext.set(null);
+            return executeAsync(bc.getBatchStatement());
+        }
+
+        throw new IllegalStateException("Nesting is not supported by asyncBatch");
+    }
+
     private boolean isModifyingStatement(Statement statement) {
         return statement instanceof Insert || statement instanceof Delete || statement instanceof Update;
     }
