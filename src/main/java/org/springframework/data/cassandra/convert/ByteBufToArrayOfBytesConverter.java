@@ -30,13 +30,13 @@ final public class ByteBufToArrayOfBytesConverter implements Converter<ByteBuffe
     public byte[] convert(ByteBuffer buffer) {
         final int length = buffer.remaining();
 
-        if (buffer.hasArray())
-        {
+        if (buffer.hasArray()) {
             final int boff = buffer.arrayOffset() + buffer.position();
-            if (boff == 0 && length == buffer.array().length)
-                return buffer.array();
-            else
-                return Arrays.copyOfRange(buffer.array(), boff, boff + length);
+//            if (boff == 0 && length == buffer.array().length)
+//                return buffer.array();
+//            else
+//                return Arrays.copyOfRange(buffer.array(), boff, boff + length);
+            return Arrays.copyOfRange(buffer.array(), boff, boff + length);
         }
         // else, DirectByteBuffer.get() is the fastest route
         final byte[] bytes = new byte[length];

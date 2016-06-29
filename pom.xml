@@ -7,7 +7,7 @@
     <groupId>org.springframework.data</groupId>
     <artifactId>spring-data-cassandra2</artifactId>
     <packaging>jar</packaging>
-    <version>1.02</version>
+    <version>1.03</version>
     <name>Spring Data Cassandra</name>
 
     <developers>
