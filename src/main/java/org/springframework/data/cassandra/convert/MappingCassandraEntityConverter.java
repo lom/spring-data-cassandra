@@ -16,6 +16,7 @@
 package org.springframework.data.cassandra.convert;
 
 import com.datastax.driver.core.querybuilder.*;
+import com.google.common.collect.Maps;
 import org.springframework.data.cassandra.mapping.CassandraMappingContext;
 import org.springframework.data.cassandra.mapping.CassandraPersistentEntity;
 import org.springframework.data.cassandra.mapping.CassandraPersistentProperty;
@@ -25,12 +26,10 @@ import com.google.common.base.Splitter;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.convert.EntityInstantiator;
 import org.springframework.data.convert.EntityInstantiators;
+import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.data.mapping.model.BeanWrapper;
-import org.springframework.data.mapping.model.MappingException;
-import org.springframework.data.mapping.model.PersistentEntityParameterValueProvider;
-import org.springframework.data.mapping.model.PropertyValueProvider;
+import org.springframework.data.mapping.model.*;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
@@ -38,6 +37,7 @@ import org.springframework.util.Assert;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * {@link CassandraEntityConverter} that uses a {@link MappingContext} to do sophisticated mapping of domain objects to
@@ -51,6 +51,8 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
     protected GenericConversionService conversionService = new CassandraConversionService();
     protected EntityInstantiators instantiators = new EntityInstantiators();
     protected CassandraPersistentTypeResolver persistentTypeResolver = new CassandraPersistentTypeResolver();
+
+    protected ConcurrentMap<Class, TypeInformation> typeInfoMap = Maps.newConcurrentMap();
 
     /**
      * Creates default mapping converter
@@ -90,7 +92,13 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
 
     @SuppressWarnings("unchecked")
 	public <R> R read(Class<R> clazz, Row row) {
-		final TypeInformation<? extends R> typeToUse = ClassTypeInformation.from(clazz);
+        // внутри ClassTypeInformation synchronized map, пришлось кешить вызовы
+        TypeInformation<? extends R> typeToUse = typeInfoMap.get(clazz);
+        if (typeToUse == null) {
+            typeToUse = ClassTypeInformation.from(clazz);
+            typeInfoMap.putIfAbsent(clazz, typeToUse);
+        }
+
 		final Class<? extends R> rawType = typeToUse.getType();
 
 		if (Row.class.isAssignableFrom(rawType)) {
@@ -114,6 +122,7 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
 		return mappingContext;
 	}
 
+    @SuppressWarnings("unchecked")
 	private <S extends Object> S read(final CassandraPersistentEntity<S> entity, final Row row) {
 		final PropertyValueProvider<CassandraPersistentProperty> propertyProvider = new CassandraPropertyValueProvider(row);
 		final PersistentEntityParameterValueProvider<CassandraPersistentProperty> parameterProvider =
@@ -121,9 +130,8 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
 		
 		final EntityInstantiator instantiator = instantiators.getInstantiatorFor(entity);
 		final S instance = instantiator.createInstance(entity, parameterProvider);
-
-		final BeanWrapper<CassandraPersistentEntity<S>, S> wrapper = BeanWrapper.create(instance, conversionService);
-		final S result = wrapper.getBean();
+        final ConvertingPropertyAccessor accessor = getConvertingPropertyAccessor(instance, entity);
+		final S result = (S) accessor.getBean();
 
 		// Set properties not already set in the constructor
 		entity.doWithProperties(new PropertyHandler<CassandraPersistentProperty>() {
@@ -135,7 +143,7 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
                     if (embeddedEntity == null)
                         throw new MappingException("No mapping metadata found for " + prop.getRawType().getName());
 
-                    wrapper.setProperty(prop, read(embeddedEntity, row));
+                    accessor.setProperty(prop, read(embeddedEntity, row));
                     return;
                 }
 
@@ -143,31 +151,39 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
 					return;
 				}
 
-				wrapper.setProperty(prop, propertyProvider.getPropertyValue(prop));
+                accessor.setProperty(prop, propertyProvider.getPropertyValue(prop));
 			}
 		});
 		
 		return result;
 	}
 
+    private ConvertingPropertyAccessor getConvertingPropertyAccessor(
+            Object source, CassandraPersistentEntity<?> entity) {
+
+        final PersistentPropertyAccessor propertyAccessor = source instanceof PersistentPropertyAccessor
+                ? (PersistentPropertyAccessor) source : entity.getPropertyAccessor(source);
+
+        return new ConvertingPropertyAccessor(propertyAccessor, conversionService);
+    }
+
     @Override
     public Object getEntityId(Object source) {
         final CassandraPersistentEntity persistentEntity = getPersistentEntity(source.getClass());
         final CassandraPersistentProperty idProperty = (CassandraPersistentProperty)persistentEntity.getIdProperty();
 
-        return BeanWrapper.create(source, null).getProperty(idProperty);
+        return getConvertingPropertyAccessor(source, persistentEntity).getProperty(idProperty);
     }
 
     @Override
     public void writeInsert(final Object source, final Insert query) {
         final CassandraPersistentEntity persistentEntity = getPersistentEntity(source.getClass());
-        final BeanWrapper<CassandraPersistentEntity<Object>, Object> wrapper =
-                BeanWrapper.create(source, conversionService);
+        final ConvertingPropertyAccessor accessor = getConvertingPropertyAccessor(source, persistentEntity);
 
         persistentEntity.doWithProperties(new PropertyHandler<CassandraPersistentProperty>() {
             @Override
             public void doWithPersistentProperty(CassandraPersistentProperty prop) {
-                final Object value = wrapper.getProperty(prop, persistentTypeResolver.getPersistentType(prop.getType()), false);
+                final Object value = accessor.getProperty(prop, persistentTypeResolver.getPersistentType(prop.getType()));
                 if (value == null)
                     return;
 
@@ -223,13 +239,12 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
 
     private void makeIdClauseListEntity(final List<Clause> clauseList, final Object value) {
         final CassandraPersistentEntity persistentEntity = getPersistentEntity(value.getClass());
-        final BeanWrapper<CassandraPersistentEntity<Object>, Object> wrapper =
-                BeanWrapper.create(value, conversionService);
+        final ConvertingPropertyAccessor accessor = getConvertingPropertyAccessor(value, persistentEntity);
 
         persistentEntity.doWithProperties(new PropertyHandler<CassandraPersistentProperty>() {
             @Override
             public void doWithPersistentProperty(CassandraPersistentProperty prop) {
-                final Object convertedValue = wrapper.getProperty(prop, getPersistentPropertyType(prop), false);
+                final Object convertedValue = accessor.getProperty(prop, getPersistentPropertyType(prop));
                 if (convertedValue == null)
                     return;
 
