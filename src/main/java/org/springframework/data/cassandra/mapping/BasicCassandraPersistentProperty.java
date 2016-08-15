@@ -48,9 +48,13 @@ public class BasicCassandraPersistentProperty extends AnnotationBasedPersistentP
 
 		super(field, propertyDescriptor, owner, simpleTypeHolder);
 
-        final Column annotation = findAnnotation(Column.class);
-        columnName = annotation != null && StringUtils.hasText(annotation.value())
-                ? annotation.value() : CassandraNamingUtils.guessColumnName(field.getName());
+        if (field != null) {
+            final Column annotation = findAnnotation(Column.class);
+            columnName = annotation != null && StringUtils.hasText(annotation.value())
+                    ? annotation.value() : CassandraNamingUtils.guessColumnName(field.getName());
+        } else {
+            columnName = null;
+        }
 	}
 
 	/**
