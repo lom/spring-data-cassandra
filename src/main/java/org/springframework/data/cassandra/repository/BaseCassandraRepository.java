@@ -55,10 +55,19 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
 
     abstract protected Class<?> getEntityClass();
 
+    protected void beforeInsert(T entity) {
+        //
+    }
+
+    protected void afterFetch(T entity) {
+        //
+    }
+
     @Override
     public <S extends T> S save(S entity) {
         final Insert query = baseInsert();
 
+        beforeInsert(entity);
         converter.writeInsert(entity, query);
         template.execute(query);
 
@@ -69,6 +78,7 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
     public <S extends T> CompletableFuture<S> saveAsync(final S entity) {
         final Insert query = baseInsert();
 
+        beforeInsert(entity);
         converter.writeInsert(entity, query);
 
         return executeQueryAsyncAndTransformResult(query, rs -> entity);
@@ -313,7 +323,19 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
         if (rs.isExhausted())
             return null;
 
-        return (T)converter.read(getEntityClass(), rs.one());
+        final T entity = (T)converter.read(getEntityClass(), rs.one());
+
+        afterFetch(entity);
+
+        return entity;
+    }
+
+    protected T readEntity(Row row) {
+        final T entity = (T)converter.read(getEntityClass(), row);
+
+        afterFetch(entity);
+
+        return entity;
     }
 
     protected T getByQuery(Statement query) {
@@ -379,15 +401,10 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
     }
 
     protected Iterable<T> resultSetToEntityIterator(final ResultSet rs) {
-        return new Iterable<T>() {
-            @Override
-            public Iterator<T> iterator() {
-                return new ResultSetToEntityIterator<T>(rs);
-            }
-        };
+        return () -> new ResultSetToEntityIterator<>(rs);
     }
 
-    private class ResultSetToEntityIterator<T> implements Iterator<T> {
+    private class ResultSetToEntityIterator<TT extends T> implements Iterator<TT> {
         final private Iterator<Row> delegate;
 
         ResultSetToEntityIterator(ResultSet rs) {
@@ -405,13 +422,17 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
         }
 
         @Override
-        public T next() {
+        public TT next() {
             try {
                 final Row row = delegate.next();
                 if (row == null)
                     return null;
 
-                return (T)converter.read(getEntityClass(), row);
+                final TT entity = (TT)converter.read(getEntityClass(), row);
+
+                afterFetch(entity);
+
+                return entity;
             } catch (RuntimeException e) {
                 final RuntimeException translated = EXCEPTION_TRANSLATOR.translateExceptionIfPossible(e);
                 throw  translated == null ? e : translated;

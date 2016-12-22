@@ -17,9 +17,6 @@ package org.springframework.data.cassandra.mapping;
 
 import org.junit.Test;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.cassandra.entity.CqPartition;
-
-import java.io.Serializable;
 
 import static org.junit.Assert.*;
 
@@ -46,19 +43,6 @@ public class TestCassandraMappingContext {
         @Id
         private Integer identifier;
         private Integer someProperty;
-    }
-
-
-    @Test
-    public void getPersistentEntity1() {
-        CassandraMappingContext ctx = new CassandraMappingContext();
-        BasicCassandraPersistentEntity<?> pe = ctx.getPersistentEntity(CqPartition.class);
-        assertNotNull(pe);
-
-        assertNotNull(pe.getIdProperty());
-        assertEquals("id", pe.getIdProperty().getName());
-
-        assertNotNull(pe.getPersistentProperty("field"));
     }
 
 }
