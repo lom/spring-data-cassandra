@@ -15,25 +15,34 @@
  */
 package org.springframework.data.cassandra.convert;
 
+import com.datastax.driver.core.Row;
 import com.datastax.driver.core.querybuilder.*;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
+import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.data.cassandra.crypto.transformer.bytes.BytesTransformerFactory;
+import org.springframework.data.cassandra.crypto.transformer.value.ValueDecryptor;
+import org.springframework.data.cassandra.crypto.transformer.value.ValueEncryptor;
+import org.springframework.data.cassandra.crypto.transformer.value.ValueTransformerFactory;
 import org.springframework.data.cassandra.mapping.CassandraMappingContext;
 import org.springframework.data.cassandra.mapping.CassandraPersistentEntity;
 import org.springframework.data.cassandra.mapping.CassandraPersistentProperty;
 import org.springframework.data.cassandra.util.ReturningCassandraPropertyHandler;
-import com.datastax.driver.core.Row;
-import com.google.common.base.Splitter;
-import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.convert.EntityInstantiator;
 import org.springframework.data.convert.EntityInstantiators;
+import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.data.mapping.model.*;
+import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
+import org.springframework.data.mapping.model.MappingException;
+import org.springframework.data.mapping.model.PersistentEntityParameterValueProvider;
+import org.springframework.data.mapping.model.PropertyValueProvider;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -53,6 +62,8 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
     protected CassandraPersistentTypeResolver persistentTypeResolver = new CassandraPersistentTypeResolver();
 
     protected ConcurrentMap<Class, TypeInformation> typeInfoMap = Maps.newConcurrentMap();
+    protected ValueTransformerFactory valueTransformerFactory;
+    protected BytesTransformerFactory bytesTransformerFactory;
 
     /**
      * Creates default mapping converter
@@ -88,6 +99,22 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
 
     public void setPersistentTypeResolver(CassandraPersistentTypeResolver persistentTypeResolver) {
         this.persistentTypeResolver = persistentTypeResolver;
+    }
+
+    public ValueTransformerFactory getValueTransformerFactory() {
+        return valueTransformerFactory;
+    }
+
+    public void setValueTransformerFactory(ValueTransformerFactory valueTransformerFactory) {
+        this.valueTransformerFactory = valueTransformerFactory;
+    }
+
+    public BytesTransformerFactory getBytesTransformerFactory() {
+        return bytesTransformerFactory;
+    }
+
+    public void setBytesTransformerFactory(BytesTransformerFactory bytesTransformerFactory) {
+        this.bytesTransformerFactory = bytesTransformerFactory;
     }
 
     @SuppressWarnings("unchecked")
@@ -151,6 +178,28 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
 					return;
 				}
 
+                if (prop.isCrypto()) {
+                    if (!row.getColumnDefinitions().contains(prop.getColumnCryptoState()))
+                        throw new MappingException("Can't find property that stored encryption state for "
+                                + entity.getName() + "." + prop.getName());
+
+                    final boolean tryDecrypt = row.getBool(prop.getColumnCryptoState());
+                    final boolean tryDecode = ByteBuffer.class.isAssignableFrom(prop.getColumnCryptoDbType());
+                    
+                    if (tryDecrypt) {
+                        final ValueDecryptor valueDecryptor = valueTransformerFactory.decryptor(prop);
+                        final Object decryptedObj = valueDecryptor.decrypt(bytesTransformerFactory.decryptor(),
+                                propertyProvider.getPropertyValue(prop));
+                        accessor.setProperty(prop, decryptedObj);
+                        return;
+                    } else if (tryDecode) {
+                        final ValueDecryptor valueDecryptor = valueTransformerFactory.decryptor(prop);
+                        final Object decodedObj = valueDecryptor.decode(propertyProvider.getPropertyValue(prop));
+                        accessor.setProperty(prop, decodedObj);
+                        return;
+                    }
+                }
+
                 accessor.setProperty(prop, propertyProvider.getPropertyValue(prop));
 			}
 		});
@@ -183,12 +232,34 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
         persistentEntity.doWithProperties(new PropertyHandler<CassandraPersistentProperty>() {
             @Override
             public void doWithPersistentProperty(CassandraPersistentProperty prop) {
-                final Object value = accessor.getProperty(prop, persistentTypeResolver.getPersistentType(prop.getType()));
+                final Object value = accessor.getProperty(prop,
+                        persistentTypeResolver.getPersistentType(prop.getType()));
+
                 if (value == null)
-                    return;
+                    return; //FIXME if you want save nulls to db
 
                 if (prop.isEntity()) {
                     writeInsert(value, query);
+                } else if (prop.isCrypto()) {
+                    final PersistentProperty cryptoStateProperty =
+                            prop.getOwner().getPersistentProperty(prop.getColumnCryptoState());
+
+                    final boolean tryCrypt =
+                            Boolean.TRUE.equals(accessor.getProperty(cryptoStateProperty,
+                                    persistentTypeResolver.getPersistentType(cryptoStateProperty.getType())));
+
+                    final boolean tryEncode = ByteBuffer.class.isAssignableFrom(prop.getColumnCryptoDbType());
+
+                    if (tryCrypt) {
+                        final ValueEncryptor valueEncryptor = valueTransformerFactory.encryptor(prop);
+                        final Object encryptObj = valueEncryptor.encrypt(bytesTransformerFactory.encryptor(), value);
+                        query.value(prop.getColumnName(), encryptObj);
+                    } else if (tryEncode) {
+                        final ValueEncryptor valueEncryptor = valueTransformerFactory.encryptor(prop);
+                        query.value(prop.getColumnName(), valueEncryptor.encode(value));
+                    } else {
+                        query.value(prop.getColumnName(), value);
+                    }
                 } else {
                     query.value(prop.getColumnName(), value);
                 }

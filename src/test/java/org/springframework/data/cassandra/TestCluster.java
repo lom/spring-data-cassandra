@@ -15,20 +15,25 @@
  */
 package org.springframework.data.cassandra;
 
-import org.junit.Ignore;
-import org.springframework.data.cassandra.convert.MappingCassandraEntityConverter;
-import org.springframework.data.cassandra.mapping.CassandraMappingContext;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
-import org.springframework.data.cassandra.entity.Comment;
-import org.springframework.data.cassandra.entity.Post;
+import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.cassandra.convert.MappingCassandraEntityConverter;
+import org.springframework.data.cassandra.crypto.transformer.bytes.BytesTransformerFactory;
+import org.springframework.data.cassandra.crypto.transformer.bytes.DefaultBytesTransformerFactory;
+import org.springframework.data.cassandra.crypto.transformer.value.ValueTransformerFactory;
+import org.springframework.data.cassandra.entity.Comment;
+import org.springframework.data.cassandra.entity.Post;
+import org.springframework.data.cassandra.mapping.CassandraMappingContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 /**
  * Date: 13.09.13 14:38
@@ -42,7 +47,23 @@ public class TestCluster {
     @Autowired
     Session session;
 
-    MappingCassandraEntityConverter converter = new MappingCassandraEntityConverter(new CassandraMappingContext());
+    @Autowired
+    DefaultBytesTransformerFactory defaultBytesTransformerFactory;
+
+    @Autowired
+    ValueTransformerFactory valueTransformerFactory;
+
+    @Autowired
+    BytesTransformerFactory bytesTransformerFactory;
+
+    MappingCassandraEntityConverter converter;
+
+    @Before
+    public void setUp() throws Exception {
+        converter = new MappingCassandraEntityConverter(new CassandraMappingContext());
+        converter.setValueTransformerFactory(valueTransformerFactory);
+        converter.setBytesTransformerFactory(bytesTransformerFactory);
+    }
 
     @Test
     public void readPost() {
@@ -59,6 +80,7 @@ public class TestCluster {
     }
 
     @Test
+    @Ignore
     public void readComment() {
         assertNotNull(session);
 

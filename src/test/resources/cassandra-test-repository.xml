@@ -17,17 +17,39 @@
         </property>
     </bean>
 
-    <bean class="org.springframework.data.cassandra.core.CassandraSessionFactoryBean">
+    <bean id="session" class="org.springframework.data.cassandra.core.CassandraSessionFactoryBean">
         <property name="cluster" ref="cassandraClusterFactory" />
-        <property name="keyspace" value="sdp" />
+        <property name="keyspace" value="a1s_sdp" />
     </bean>
 
+    <bean id="cassandraJceksKeySource" class="org.springframework.data.cassandra.crypto.key.JceksKeySource">
+        <property name="defaultKeyAlias" value="k3" />
+        <property name="keyStoreLocation" value="classpath:test.jceks" />
+        <property name="keyPassword" value="testkeypass" />
+    </bean>
 
+    <bean id="cassandraCipherFactory" class="org.springframework.data.cassandra.crypto.cipher.DefaultCipherFactory">
+        <property name="algorithm" value="AES" />
+        <property name="mode" value="CBC" />
+        <property name="padding" value="PKCS5Padding" />
+    </bean>
 
-    <bean class="org.springframework.data.cassandra.convert.MappingCassandraEntityConverter" />
+    <bean id="cassandraBytesTransformerFactory" class="org.springframework.data.cassandra.crypto.transformer.bytes.DefaultBytesTransformerFactory">
+        <property name="cipherFactory" ref="cassandraCipherFactory" />
+        <property name="keySource" ref="cassandraJceksKeySource" />
+    </bean>
+
+    <bean id="cassandraValueTransformerFactory" class="org.springframework.data.cassandra.crypto.transformer.value.DefaultValueTransformerFactory">
+        <property name="keySource" ref="cassandraJceksKeySource" />
+    </bean>
+
+    <bean class="org.springframework.data.cassandra.convert.MappingCassandraEntityConverter">
+        <property name="bytesTransformerFactory" ref="cassandraBytesTransformerFactory" />
+        <property name="valueTransformerFactory" ref="cassandraValueTransformerFactory" />
+    </bean>
 
     <bean class="org.springframework.data.cassandra.template.CassandraTemplateImpl">
-        <property name="session" ref="org.springframework.data.cassandra.core.CassandraSessionFactoryBean" />
+        <property name="session" ref="session" />
     </bean>
 
     <context:annotation-config />

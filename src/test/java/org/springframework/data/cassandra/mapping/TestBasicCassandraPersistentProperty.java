@@ -22,6 +22,7 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.util.ReflectionUtils;
+
 import java.lang.reflect.Field;
 
 import static org.junit.Assert.*;
@@ -63,6 +64,13 @@ public class TestBasicCassandraPersistentProperty {
         assertFalse(getPropertyFor("id").isTransient());
     }
 
+    @Test
+    public void isCrypto() {
+        assertTrue(getPropertyFor("cryptoColumn").isCrypto());
+        assertTrue(getPropertyFor("cryptoColumn2").isCrypto());
+        assertFalse(getPropertyFor("someColumn").isCrypto());
+    }
+
     private CassandraPersistentProperty getPropertyFor(String fieldName) {
         Field field = ReflectionUtils.findField(SomeEntity.class, fieldName);
         return new BasicCassandraPersistentProperty(field, null, entity, new SimpleTypeHolder());
@@ -79,6 +87,14 @@ public class TestBasicCassandraPersistentProperty {
         private String someColumn;
 
         private String anotherColumn;
+
+        @Crypto(columnState = "crypto")
+        private String cryptoColumn;
+
+        @Crypto(columnState = "crypto")
+        private String cryptoColumn2;
+
+        private Boolean crypto;
 
         @Transient
         private String transientColumn;

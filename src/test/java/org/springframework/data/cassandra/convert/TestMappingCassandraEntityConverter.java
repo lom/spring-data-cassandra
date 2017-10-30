@@ -16,18 +16,27 @@
 package org.springframework.data.cassandra.convert;
 
 import com.datastax.driver.core.querybuilder.*;
+import org.easymock.*;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.data.cassandra.crypto.transformer.bytes.BytesEncryptor;
+import org.springframework.data.cassandra.crypto.transformer.bytes.BytesTransformerFactory;
+import org.springframework.data.cassandra.crypto.transformer.value.ValueEncryptor;
+import org.springframework.data.cassandra.crypto.transformer.value.ValueTransformerFactory;
 import org.springframework.data.cassandra.entity.Comment;
 import org.springframework.data.cassandra.entity.CommentEmbedded;
 import org.springframework.data.cassandra.entity.CommentPk;
 import org.springframework.data.cassandra.entity.Post;
 import org.springframework.data.cassandra.mapping.CassandraPersistentEntity;
+import org.springframework.data.cassandra.mapping.CassandraPersistentProperty;
 import org.springframework.data.mapping.model.MappingException;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
 /**
@@ -35,13 +44,19 @@ import static org.junit.Assert.*;
  *
  * @author Alexandr V Solomatin
  */
-public class TestMappingCassandraEntityConverter {
-    private MappingCassandraEntityConverter converter = new MappingCassandraEntityConverter();
 
+@RunWith(EasyMockRunner.class)
+public class TestMappingCassandraEntityConverter extends EasyMockSupport {
     final private UUID commentId = UUID.fromString("5ff6eb04-6c0b-4aaa-9a12-f51af7a7d6dc");
     final private UUID postId = UUID.fromString("b90fcb58-4e53-4908-9e80-4683049362dd");
     final private CommentPk commentPk = new CommentPk(postId, commentId);
 
+    @Mock
+    ValueTransformerFactory valueTransformerFactory;
+    @Mock
+    BytesTransformerFactory bytesTransformerFactory;
+    @TestSubject
+    MappingCassandraEntityConverter converter = new MappingCassandraEntityConverter();
 
     @Test
     public void getEntityId() {
@@ -85,6 +100,60 @@ public class TestMappingCassandraEntityConverter {
         );
     }
 
+    @Test
+    public void writeCryptoDisabledInsert() {
+        Insert query1 = QueryBuilder.insertInto("c");
+
+        ValueEncryptor valueEncryptor = createMock(ValueEncryptor.class);
+        expect(valueEncryptor.encode(new Long("12345678"))).andReturn(ByteBuffer.wrap(new byte[]{0x11, 0x22, 0x33}));
+
+        Capture<CassandraPersistentProperty> persistentPropertyCapture = new Capture<>();
+        expect(valueTransformerFactory.encryptor(capture(persistentPropertyCapture)))
+                .andReturn(valueEncryptor);
+
+        replayAll();
+        
+        converter.writeInsert(makeCryptoPost(Boolean.FALSE), query1);
+
+        assertEquals(
+                "INSERT INTO c (body_text,crypto,crypto_string,crypto_value,id,title,type) VALUES ('some body',false,'some crypto string',0x112233,b90fcb58-4e53-4908-9e80-4683049362dd,'some title','TYPE2');",
+                query1.toString()
+        );
+
+        CassandraPersistentProperty cassandraPersistentProperty = persistentPropertyCapture.getValue();
+        assertTrue(cassandraPersistentProperty.isCrypto());
+        assertEquals("crypto_value", cassandraPersistentProperty.getColumnName());
+        assertEquals("cryptoValue", cassandraPersistentProperty.getName());
+
+        verifyAll();
+    }
+
+    @Test
+    public void writeCryptoEnabledInsert() {
+        Insert query1 = QueryBuilder.insertInto("c");
+
+        BytesEncryptor bytesEncryptor = createMock(BytesEncryptor.class);
+        expect(bytesTransformerFactory.encryptor()).andReturn(bytesEncryptor).anyTimes();
+
+        ValueEncryptor valueEncryptor = createMock(ValueEncryptor.class);
+        expect(valueEncryptor.encrypt(eq(bytesEncryptor), anyObject(String.class))).andReturn("CryptedStringEncodedToBase64String");
+        expect(valueEncryptor.encrypt(eq(bytesEncryptor), anyObject(Long.class))).andReturn(ByteBuffer.wrap(new byte[]{0x33, 0x22, 0x11}));
+        
+        expect(valueTransformerFactory.encryptor(anyObject(CassandraPersistentProperty.class)))
+                .andReturn(valueEncryptor).anyTimes();
+
+        replayAll();
+
+        converter.writeInsert(makeCryptoPost(Boolean.TRUE), query1);
+
+        assertEquals(
+                "INSERT INTO c (body_text,crypto,crypto_string,crypto_value,id,title,type) VALUES ('some body',true,'CryptedStringEncodedToBase64String',0x332211,b90fcb58-4e53-4908-9e80-4683049362dd,'some title','TYPE2');",
+                query1.toString()
+        );
+
+        verifyAll();
+    }
+    
     @Test
     public void writeSelectIdClause() {
         Select query = QueryBuilder.select().all().from("c");
@@ -198,7 +267,7 @@ public class TestMappingCassandraEntityConverter {
         query = selection.from("c");
 
         assertEquals(
-            "SELECT body_text,id,title,type FROM c;",
+            "SELECT body_text,crypto,crypto_string,crypto_value,id,title,type FROM c;",
             query.toString()
         );
     }
@@ -262,6 +331,15 @@ public class TestMappingCassandraEntityConverter {
         post.setTitle("some title");
         post.setBody("some body");
         post.setType(Post.PostType.TYPE2);
+        
+        return post;
+    }
+
+    private Post makeCryptoPost(Boolean bool) {
+        Post post = makePost();
+        post.setCryptoValue(new Long("12345678"));
+        post.setCryptoString("some crypto string");
+        post.setCrypto(bool);
 
         return post;
     }

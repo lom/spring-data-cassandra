@@ -16,6 +16,7 @@
 package org.springframework.data.cassandra.entity;
 
 import org.springframework.data.cassandra.mapping.Column;
+import org.springframework.data.cassandra.mapping.Crypto;
 import org.springframework.data.cassandra.mapping.Table;
 import org.springframework.data.annotation.Id;
 
@@ -34,6 +35,12 @@ final public class Post {
     @Column("body_text")
     private String body;
     private PostType type;
+
+    @Crypto(columnState = "crypto")
+    private Long cryptoValue;
+    private Boolean crypto;
+    @Crypto(columnState = "crypto", columnDbType = String.class)
+    private String cryptoString;
 
     public UUID getId() {
         return id;
@@ -67,13 +74,40 @@ final public class Post {
         this.type = type;
     }
 
+    public Long getCryptoValue() {
+        return cryptoValue;
+    }
+
+    public void setCryptoValue(Long cryptoValue) {
+        this.cryptoValue = cryptoValue;
+    }
+
+    public Boolean getCrypto() {
+        return crypto;
+    }
+
+    public void setCrypto(Boolean crypto) {
+        this.crypto = crypto;
+    }
+
+    public String getCryptoString() {
+        return cryptoString;
+    }
+
+    public void setCryptoString(String cryptoString) {
+        this.cryptoString = cryptoString;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Post{");
         sb.append("id=").append(id);
         sb.append(", title='").append(title).append('\'');
         sb.append(", body='").append(body).append('\'');
-        sb.append(", type='").append(type).append('\'');
+        sb.append(", type=").append(type);
+        sb.append(", cryptoValue=").append(cryptoValue);
+        sb.append(", crypto=").append(crypto);
+        sb.append(", cryptoString='").append(cryptoString).append('\'');
         sb.append('}');
         return sb.toString();
     }

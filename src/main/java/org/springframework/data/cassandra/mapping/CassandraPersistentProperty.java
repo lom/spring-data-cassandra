@@ -38,4 +38,14 @@ public interface CassandraPersistentProperty extends PersistentProperty<Cassandr
 	 */
 	boolean isIndexed();
 
+
+	/**
+	 * Returns true if the property has encryption on this column.
+	 *
+	 * @return
+	 */
+	boolean isCrypto();
+
+	String getColumnCryptoState();
+	Class<?> getColumnCryptoDbType();
 }
