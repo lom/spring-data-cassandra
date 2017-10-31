@@ -42,8 +42,8 @@ class DefaultValueEncryptor implements ValueEncryptor {
         }
 
         @SuppressWarnings("unchecked")
-        byte[] bytes = preConverter.toBytes(value);
-        byte[] transformed = encryptor.encrypt(bytes, 0, new byte[1]);
+        final byte[] bytes = preConverter.toBytes(value);
+        final byte[] transformed = encryptor.encrypt(bytes, 0, new byte[1]);
         return postConverter.fromBytes(transformed);
     }
 
@@ -54,7 +54,7 @@ class DefaultValueEncryptor implements ValueEncryptor {
         }
 
         @SuppressWarnings("unchecked")
-        byte[] bytes = preConverter.toBytes(value);
+        final byte[] bytes = preConverter.toBytes(value);
         return postConverter.fromBytes(bytes);
     }
 }

@@ -19,6 +19,7 @@ public class CassandraCryptoException extends RuntimeException {
     private static final long serialVersionUID = -281186275324369949L;
 
     public CassandraCryptoException() {
+        /**/
     }
 
     public CassandraCryptoException(String messageFormat, Object... messageArgs) {

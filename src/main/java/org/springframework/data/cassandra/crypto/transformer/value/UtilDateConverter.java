@@ -22,10 +22,8 @@ import java.util.Objects;
  * Converts between java.util.Date and byte[], based on the long timestamp encoding.
  */
 public class UtilDateConverter implements BytesConverter<Date> {
-
     public static final BytesConverter<Date> INSTANCE = new UtilDateConverter(LongConverter.INSTANCE);
-
-    private BytesConverter<Long> longConverter;
+    private final BytesConverter<Long> longConverter;
 
     public UtilDateConverter(BytesConverter<Long> longConverter) {
         this.longConverter = Objects.requireNonNull(longConverter);

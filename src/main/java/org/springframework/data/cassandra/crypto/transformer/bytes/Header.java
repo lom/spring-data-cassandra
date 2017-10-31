@@ -32,6 +32,7 @@ import java.io.UnsupportedEncodingException;
  * <li>byte 5..N: UTF8-encoded symbolic name of the encryption key.
  * </ul>
  */
+@SuppressWarnings("PMD")
 public class Header {
 
     private static final String KEY_NAME_CHARSET = "UTF-8";
@@ -74,11 +75,11 @@ public class Header {
      */
     private static final int HMAC_BIT = 1;
 
-    private byte[] data;
-    private int offset;
+    private final byte[] data;
+    private final int offset;
 
     public static Header create(String keyName, boolean compressed, boolean withHMAC) {
-        byte[] keyNameBytes;
+        final byte[] keyNameBytes;
         try {
             keyNameBytes = keyName.getBytes(KEY_NAME_CHARSET);
         } catch (UnsupportedEncodingException e) {
@@ -90,7 +91,7 @@ public class Header {
                     + "' is too long. Its UTF8-encoded form should not exceed " + KEY_NAME_MAX_SIZE + " bytes");
         }
 
-        int n = MAGIC_NUMBER.length + 1 + 1 + keyNameBytes.length;
+        final int n = MAGIC_NUMBER.length + 1 + 1 + keyNameBytes.length;
 
         byte[] data = new byte[n];
         System.arraycopy(MAGIC_NUMBER, 0, data, MAGIC_NUMBER_POSITION, MAGIC_NUMBER.length);

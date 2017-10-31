@@ -22,8 +22,7 @@ import java.security.Key;
  * HMAC is formed from full header concatenated with unencrypted input.
  */
 class HmacEncryptor extends HmacCreator implements BytesEncryptor {
-
-    BytesEncryptor delegate;
+    final BytesEncryptor delegate;
 
     HmacEncryptor(BytesEncryptor delegate, Header header, Key key) {
         super(header, key);
@@ -31,11 +30,13 @@ class HmacEncryptor extends HmacCreator implements BytesEncryptor {
     }
 
     @Override
+    @SuppressWarnings("PMD")
     public byte[] encrypt(byte[] input, int outputOffset, byte[] flags) {
-        byte[] hmac = createHmac(input);
-        byte[] encrypted = delegate.encrypt(input, outputOffset + hmac.length + 1, flags);
+        final byte[] hmac = createHmac(input);
+        final byte[] encrypted = delegate.encrypt(input, outputOffset + hmac.length + 1, flags);
         encrypted[outputOffset++] = (byte)hmac.length; // store HMAC length
         System.arraycopy(hmac, 0, encrypted, outputOffset, hmac.length);
+
         return encrypted;
     }
 }

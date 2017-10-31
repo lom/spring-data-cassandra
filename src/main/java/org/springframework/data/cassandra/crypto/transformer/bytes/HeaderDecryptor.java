@@ -20,9 +20,9 @@ import org.springframework.data.cassandra.crypto.key.KeySource;
 import java.security.Key;
 
 class HeaderDecryptor implements BytesDecryptor {
-    private KeySource keySource;
-    private BytesDecryptor delegate;
-    private BytesDecryptor decompressDelegate;
+    private final KeySource keySource;
+    private final BytesDecryptor delegate;
+    private final BytesDecryptor decompressDelegate;
 
     HeaderDecryptor(BytesDecryptor delegate, BytesDecryptor decompressDelegate, KeySource keySource) {
         this.delegate = delegate;
@@ -32,11 +32,10 @@ class HeaderDecryptor implements BytesDecryptor {
 
     @Override
     public byte[] decrypt(byte[] input, int inputOffset, Key key) {
-
-        Header header = Header.create(input, inputOffset);
+        final Header header = Header.create(input, inputOffset);
 
         // ignoring the parameter key... using the key from the first block
-        Key inRecordKey = keySource.getKey(header.getKeyName());
+        final Key inRecordKey = keySource.getKey(header.getKeyName());
 
         // if compression was used to create a record, filter through GzipDecryptor...
         BytesDecryptor worker = header.isCompressed() ? decompressDelegate : delegate;

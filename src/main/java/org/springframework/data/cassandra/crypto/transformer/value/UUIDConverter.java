@@ -26,7 +26,7 @@ public class UUIDConverter implements BytesConverter<UUID> {
 
     @Override
     public byte[] toBytes(UUID value) {
-        ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
+        final ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
         bb.putLong(value.getMostSignificantBits());
         bb.putLong(value.getLeastSignificantBits());
 

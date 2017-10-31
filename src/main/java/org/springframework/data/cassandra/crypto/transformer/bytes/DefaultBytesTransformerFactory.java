@@ -49,12 +49,12 @@ public class DefaultBytesTransformerFactory implements InitializingBean, BytesTr
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        final Header encryptionHeader = createEncryptionHeader(keySource);
-
         final String mode = cipherFactory.getMode();
         if (mode == null) {
             throw new CassandraCryptoException("Cipher mode is not set");
         }
+
+        final Header encryptionHeader = createEncryptionHeader(keySource);
 
         if ("CBC".equals(mode)) {
             this.delegate = new CbcBytesTransformerFactory(cipherFactory, keySource, encryptionHeader);

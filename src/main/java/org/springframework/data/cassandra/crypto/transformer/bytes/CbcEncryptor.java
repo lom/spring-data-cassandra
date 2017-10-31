@@ -36,10 +36,10 @@ import java.util.Arrays;
  */
 class CbcEncryptor implements BytesEncryptor {
 
-    private Cipher cipher;
-    private byte[] iv;
-    private Key key;
-    private int blockSize;
+    private final Cipher cipher;
+    private final byte[] iv;
+    private final Key key;
+    private final int blockSize;
 
     public CbcEncryptor(Cipher cipher, Key key, byte[] seedIv) {
         this.key = key;
@@ -73,12 +73,12 @@ class CbcEncryptor implements BytesEncryptor {
             InvalidAlgorithmParameterException, ShortBufferException, IllegalBlockSizeException, BadPaddingException {
 
         cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv));
-        byte[] encrypted = new byte[outputOffset + blockSize + cipher.getOutputSize(plain.length)];
+        final byte[] encrypted = new byte[outputOffset + blockSize + cipher.getOutputSize(plain.length)];
 
         // copy IV in the first block
         System.arraycopy(iv, 0, encrypted, outputOffset, blockSize);
 
-        int encBytes = cipher.doFinal(plain, 0, plain.length, encrypted, outputOffset + blockSize);
+        final int encBytes = cipher.doFinal(plain, 0, plain.length, encrypted, outputOffset + blockSize);
 
         // store the last block of ciphertext to use as an IV for the next round
         // of encryption...

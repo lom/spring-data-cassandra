@@ -24,8 +24,7 @@ import java.util.Arrays;
 import java.util.zip.GZIPInputStream;
 
 class GzipDecryptor implements BytesDecryptor {
-
-    private BytesDecryptor delegate;
+    private final BytesDecryptor delegate;
 
     public GzipDecryptor(BytesDecryptor delegate) {
         this.delegate = delegate;
@@ -33,8 +32,7 @@ class GzipDecryptor implements BytesDecryptor {
 
     @Override
     public byte[] decrypt(byte[] input, int inputOffset, Key key) {
-
-        byte[] decrypted = delegate.decrypt(input, inputOffset, key);
+        final byte[] decrypted = delegate.decrypt(input, inputOffset, key);
         try {
             return gunzip(decrypted);
         } catch (IOException e) {
@@ -44,9 +42,8 @@ class GzipDecryptor implements BytesDecryptor {
     }
 
     static byte[] gunzip(byte[] input) throws IOException {
-
-        ByteArrayInputStream zipBytes = new ByteArrayInputStream(input);
-        GZIPInputStream in = new GZIPInputStream(zipBytes);
+        final  ByteArrayInputStream zipBytes = new ByteArrayInputStream(input);
+        final GZIPInputStream in = new GZIPInputStream(zipBytes);
 
         // duplicating ByteArrayOutputStream logic here... too much overhead and
         // inefficiency using ByteArrayOutputStream directly
@@ -55,10 +52,9 @@ class GzipDecryptor implements BytesDecryptor {
 
         int totalRead = 0;
         int read;
-        int resizeBy = input.length;
+        final int resizeBy = input.length;
 
         while ((read = in.read(out, totalRead, out.length - totalRead - 1)) > 0) {
-
             totalRead += read;
             if (totalRead + 1 == out.length) {
                 out = Arrays.copyOf(out, out.length + resizeBy);

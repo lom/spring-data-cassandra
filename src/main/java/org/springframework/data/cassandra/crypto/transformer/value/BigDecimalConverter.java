@@ -30,13 +30,11 @@ public class BigDecimalConverter implements BytesConverter<BigDecimal> {
     private static final int MIN_BYTES = INTEGER_BYTES + 1;
 
     static BigDecimal getBigDecimal(byte[] bytes) {
-
-        byte[] unscaledBytes, scaleBytes;
-
         if (bytes.length < MIN_BYTES) {
             throw new IllegalArgumentException("byte[] is too small for a BigDecimal columnCryptoState: " + bytes.length);
         }
 
+        byte[] unscaledBytes, scaleBytes;
         scaleBytes = Arrays.copyOfRange(bytes, 0, INTEGER_BYTES);
         unscaledBytes = Arrays.copyOfRange(bytes, INTEGER_BYTES, bytes.length);
 

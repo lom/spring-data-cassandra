@@ -16,9 +16,8 @@
 package org.springframework.data.cassandra.crypto.transformer.bytes;
 
 class HeaderEncryptor implements BytesEncryptor {
-
-    private BytesEncryptor delegate;
-    private Header header;
+    private final BytesEncryptor delegate;
+    private final Header header;
 
     HeaderEncryptor(BytesEncryptor delegate, Header header) {
         this.delegate = delegate;
@@ -27,10 +26,9 @@ class HeaderEncryptor implements BytesEncryptor {
 
     @Override
     public byte[] encrypt(byte[] input, int outputOffset, byte[] flags) {
-
         flags[0] = header.getFlags();
 
-        byte[] output = delegate.encrypt(input, outputOffset + header.size(), flags);
+        final byte[] output = delegate.encrypt(input, outputOffset + header.size(), flags);
         header.store(output, outputOffset, flags[0]);
         return output;
     }

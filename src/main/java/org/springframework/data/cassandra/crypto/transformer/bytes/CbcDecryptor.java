@@ -33,8 +33,8 @@ import java.security.Key;
  */
 class CbcDecryptor implements BytesDecryptor {
 
-    private Cipher cipher;
-    private int blockSize;
+    private final Cipher cipher;
+    private final int blockSize;
 
     CbcDecryptor(Cipher cipher) {
         this.cipher = cipher;
@@ -53,11 +53,11 @@ class CbcDecryptor implements BytesDecryptor {
     private byte[] doDecrypt(byte[] input, int inputOffset, Key key) throws InvalidKeyException,
             InvalidAlgorithmParameterException, ShortBufferException, IllegalBlockSizeException, BadPaddingException {
 
-        IvParameterSpec iv = iv(input, inputOffset);
+        final IvParameterSpec iv = iv(input, inputOffset);
 
         cipher.init(Cipher.DECRYPT_MODE, key, iv);
 
-        int offset = inputOffset + blockSize;
+        final int offset = inputOffset + blockSize;
         return cipher.doFinal(input, offset, input.length - offset);
     }
 

@@ -26,12 +26,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 class CbcBytesTransformerFactory implements BytesTransformerFactory {
 
-    private CipherFactory cipherFactory;
-    private Key key;
-    private Header encryptionHeader;
-    private int blockSize;
-    private KeySource keySource;
-    private Queue<SecureRandom> randoms;
+    private final CipherFactory cipherFactory;
+    private final Key key;
+    private final Header encryptionHeader;
+    private final int blockSize;
+    private final KeySource keySource;
+    private final Queue<SecureRandom> randoms;
 
     CbcBytesTransformerFactory(CipherFactory cipherFactory, KeySource keySource, Header encryptionHeader) {
         this.randoms = new ConcurrentLinkedQueue<>();
@@ -41,13 +41,13 @@ class CbcBytesTransformerFactory implements BytesTransformerFactory {
         this.blockSize = cipherFactory.blockSize();
         this.encryptionHeader = encryptionHeader;
 
-        String keyName = keySource.getDefaultKeyAlias();
+        final String keyName = keySource.getDefaultKeyAlias();
         this.key = keySource.getKey(keyName);
     }
 
     protected byte[] generateSeedIv() {
 
-        byte[] iv = new byte[blockSize];
+        final byte[] iv = new byte[blockSize];
 
         // the idea of a queue of SecureRandoms for concurrency is taken from
         // Tomcat's SessionIdGenerator. Also some code...
@@ -70,7 +70,7 @@ class CbcBytesTransformerFactory implements BytesTransformerFactory {
     private SecureRandom createSecureRandom() {
 
         // TODO: allow to customize provider?
-        SecureRandom result = new SecureRandom();
+        final SecureRandom result = new SecureRandom();
 
         // Force seeding to take place
         result.nextInt();

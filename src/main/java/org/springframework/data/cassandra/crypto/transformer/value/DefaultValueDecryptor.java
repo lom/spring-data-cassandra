@@ -41,11 +41,11 @@ class DefaultValueDecryptor implements ValueDecryptor {
     @Override
     public Object decrypt(BytesDecryptor bytesDecryptor, Object value) {
         @SuppressWarnings("unchecked")
-        byte[] bytes = preConverter.toBytes(value);
+        final byte[] bytes = preConverter.toBytes(value);
 
         // 'defaultKey' is likely to be ignored by the BytesDecryptor, as the
         // key name is obtained from the record itself
-        byte[] transformed = bytesDecryptor.decrypt(bytes, 0, defaultKey);
+        final byte[] transformed = bytesDecryptor.decrypt(bytes, 0, defaultKey);
         return postConverter.fromBytes(transformed);
     }
 
@@ -56,7 +56,7 @@ class DefaultValueDecryptor implements ValueDecryptor {
         }
         
         @SuppressWarnings("unchecked")
-        byte[] bytes = preConverter.toBytes(value);
+        final byte[] bytes = preConverter.toBytes(value);
 
         return postConverter.fromBytes(bytes);
     }

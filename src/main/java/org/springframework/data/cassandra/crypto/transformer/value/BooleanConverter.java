@@ -19,17 +19,15 @@ package org.springframework.data.cassandra.crypto.transformer.value;
  * Converts between java.util.Date and byte[], based on the long timestamp encoding.
  */
 public class BooleanConverter implements BytesConverter<Boolean> {
-
     public static final BytesConverter<Boolean> INSTANCE = new BooleanConverter();
 
     @Override
     public Boolean fromBytes(byte[] bytes) {
-
         if (bytes.length != 1) {
             throw new IllegalArgumentException("Unexpected number of bytes for boolean: " + bytes.length);
         }
 
-        byte b = bytes[0];
+        final byte b = bytes[0];
         if (b == 0) {
             return Boolean.FALSE;
         } else if (b == 1) {
@@ -41,7 +39,7 @@ public class BooleanConverter implements BytesConverter<Boolean> {
 
     @Override
     public byte[] toBytes(Boolean value) {
-        return new byte[]{
+        return new byte[] {
                 value ? (byte) 1 : 0
         };
     }

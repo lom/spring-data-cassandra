@@ -26,15 +26,14 @@ import java.security.NoSuchAlgorithmException;
  * Actual authentication code generation logic that is used
  * by both {@link HmacEncryptor} and {@link HmacDecryptor}.
  */
-abstract class HmacCreator {
-
+class HmacCreator {
     /**
      * Default algorithm for authentication code creation.
      */
     public static final String DEFAULT_HMAC_ALGORITHM = "HmacSHA256";
 
-    private Header header;
-    private Mac mac;
+    private final Header header;
+    private final Mac mac;
 
     HmacCreator(Header header, Key key) {
         this.header = header;
@@ -51,9 +50,10 @@ abstract class HmacCreator {
     }
 
     byte[] createHmac(byte[] input) {
-        byte[] rawHeader = new byte[header.size()];
+        final byte[] rawHeader = new byte[header.size()];
         header.store(rawHeader, 0, header.getFlags());
         mac.update(rawHeader);
+
         return mac.doFinal(input);
     }
 }

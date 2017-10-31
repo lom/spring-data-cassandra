@@ -23,17 +23,16 @@ import java.util.zip.GZIPOutputStream;
 
 class GzipEncryptor implements BytesEncryptor {
     static final int GZIP_THRESHOLD = 150;
-
-    private BytesEncryptor delegate;
+    private final BytesEncryptor delegate;
 
     public GzipEncryptor(BytesEncryptor delegate) {
         this.delegate = delegate;
     }
 
     @Override
+    @SuppressWarnings("PMD")
     public byte[] encrypt(byte[] input, int outputOffset, byte[] flags) {
-
-        boolean compressed = input.length >= GZIP_THRESHOLD;
+        final boolean compressed = input.length >= GZIP_THRESHOLD;
 
         if (compressed) {
             try {
@@ -49,8 +48,8 @@ class GzipEncryptor implements BytesEncryptor {
     }
 
     static byte[] gzip(byte[] input) throws IOException {
-        ByteArrayOutputStream zipBytes = new ByteArrayOutputStream(input.length);
-        try (GZIPOutputStream out = new GZIPOutputStream(zipBytes);) {
+        final ByteArrayOutputStream zipBytes = new ByteArrayOutputStream(input.length);
+        try (final GZIPOutputStream out = new GZIPOutputStream(zipBytes)) {
             out.write(input, 0, input.length);
         }
 

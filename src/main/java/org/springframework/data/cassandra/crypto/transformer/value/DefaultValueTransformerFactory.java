@@ -15,8 +15,6 @@
  */
 package org.springframework.data.cassandra.crypto.transformer.value;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.cassandra.crypto.key.KeySource;
 import org.springframework.data.cassandra.mapping.CassandraPersistentProperty;
@@ -35,7 +33,6 @@ import java.util.UUID;
  * taking advantage of the JCE (Java Cryptography Extension) ciphers.
  */
 public class DefaultValueTransformerFactory implements ValueTransformerFactory, InitializingBean {
-    private static final Logger logger = LoggerFactory.getLogger(DefaultValueTransformerFactory.class);
     private final Map<String, BytesConverter<?>> objectToBytes = new HashMap<>();
     private final Map<String, BytesConverter<?>> dbToBytes = new HashMap<>();
     private final Map<CassandraPersistentProperty, ValueEncryptor> encryptors = new HashMap<>();

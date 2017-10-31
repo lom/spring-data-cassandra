@@ -61,7 +61,7 @@ public class JceksKeySource implements KeySource, InitializingBean {
     // re-reading the key from KeyStore for every select row creates a huge
     // bottleneck... And considering we are caching keystore password, it
     // probably doesn't make things that much worse
-    private ConcurrentMap<String, Key> keyCache = Maps.newConcurrentMap();
+    private final ConcurrentMap<String, Key> keyCache = Maps.newConcurrentMap();
 
     public JceksKeySource() {
         /** is ok **/
@@ -125,17 +125,17 @@ public class JceksKeySource implements KeySource, InitializingBean {
         Key key = keyCache.get(alias);
 
         if (key == null) {
-            Key newKey = createKey(alias);
-            Key oldKey = keyCache.putIfAbsent(alias, newKey);
+            final Key newKey = createKey(alias);
+            final Key oldKey = keyCache.putIfAbsent(alias, newKey);
             key = oldKey != null ? oldKey : newKey;
         }
 
-        return key == NULL_KEY ? null : key;
+        return key.equals(NULL_KEY) ? null : key;
     }
 
     protected Key createKey(String alias) {
         try {
-            Key key = keyStore.getKey(alias, keyPassword);
+            final Key key = keyStore.getKey(alias, keyPassword);
             return key != null ? key : NULL_KEY;
         } catch (Exception e) {
             throw new CassandraCryptoException("Error accessing key for alias: " + alias, e);

@@ -25,8 +25,7 @@ import java.util.Arrays;
  * and throws {@link org.springframework.data.cassandra.crypto.CassandraCryptoException} in case it is invalid.
  */
 class HmacDecryptor extends HmacCreator implements BytesDecryptor {
-
-    BytesDecryptor delegate;
+    final BytesDecryptor delegate;
 
     HmacDecryptor(BytesDecryptor delegate, Header header, Key key) {
         super(header, key);
@@ -34,15 +33,16 @@ class HmacDecryptor extends HmacCreator implements BytesDecryptor {
     }
 
     @Override
+    @SuppressWarnings("PMD")
     public byte[] decrypt(byte[] input, int inputOffset, Key key) {
-        byte hmacLength = input[inputOffset++];
+        final byte hmacLength = input[inputOffset++];
         if(hmacLength <= 0) {
             throw new CassandraCryptoException("Input is corrupted: invalid HMAC length.");
         }
 
-        byte[] receivedHmac = new byte[hmacLength];
-        byte[] decrypted = delegate.decrypt(input, inputOffset + hmacLength, key);
-        byte[] realHmac = createHmac(decrypted);
+        final byte[] receivedHmac = new byte[hmacLength];
+        final byte[] decrypted = delegate.decrypt(input, inputOffset + hmacLength, key);
+        final byte[] realHmac = createHmac(decrypted);
 
         System.arraycopy(input, inputOffset, receivedHmac, 0, hmacLength);
         if(!Arrays.equals(receivedHmac, realHmac)) {
