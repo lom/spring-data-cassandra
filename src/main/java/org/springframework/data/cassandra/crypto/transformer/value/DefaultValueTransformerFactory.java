@@ -117,6 +117,7 @@ public class DefaultValueTransformerFactory implements ValueTransformerFactory, 
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        objectToBytes.put(byte[].class.getName(), BytesToBytesConverter.INSTANCE);
         objectToBytes.put(String.class.getName(), Utf8StringConverter.INSTANCE);
         objectToBytes.put(Double.class.getName(), DoubleConverter.INSTANCE);
         objectToBytes.put(Float.class.getName(), FloatConverter.INSTANCE);
