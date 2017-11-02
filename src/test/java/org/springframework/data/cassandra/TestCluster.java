@@ -80,7 +80,6 @@ public class TestCluster {
     }
 
     @Test
-    @Ignore
     public void readComment() {
         assertNotNull(session);
 

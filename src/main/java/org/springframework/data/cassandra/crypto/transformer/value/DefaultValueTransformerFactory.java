@@ -115,9 +115,17 @@ public class DefaultValueTransformerFactory implements ValueTransformerFactory, 
         return new DefaultValueDecryptor(toBytes, fromBytes, defaultKey);
     }
 
+    public void putObjectToBytesMap(String string, BytesConverter converter) {
+        objectToBytes.put(string, converter);
+    }
+
+    public void putDbToBytesMap(String string, BytesConverter converter) {
+        dbToBytes.put(string, converter);
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception {
-        objectToBytes.put(byte[].class.getName(), BytesToBytesConverter.INSTANCE);
+        objectToBytes.put(byte[].class.getName(), ByteBufferToBytesConverter.INSTANCE);
         objectToBytes.put(String.class.getName(), Utf8StringConverter.INSTANCE);
         objectToBytes.put(Double.class.getName(), DoubleConverter.INSTANCE);
         objectToBytes.put(Float.class.getName(), FloatConverter.INSTANCE);

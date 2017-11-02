@@ -53,6 +53,11 @@ class DefaultValueEncryptor implements ValueEncryptor {
             return null;
         }
 
+        if (preConverter.equals(postConverter)) {
+            System.out.print("Here");
+            return value;
+        }
+
         @SuppressWarnings("unchecked")
         final byte[] bytes = preConverter.toBytes(value);
         return postConverter.fromBytes(bytes);

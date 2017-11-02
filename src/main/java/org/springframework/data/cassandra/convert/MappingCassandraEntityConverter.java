@@ -232,8 +232,7 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
         persistentEntity.doWithProperties(new PropertyHandler<CassandraPersistentProperty>() {
             @Override
             public void doWithPersistentProperty(CassandraPersistentProperty prop) {
-                final Object value = accessor.getProperty(prop,
-                        persistentTypeResolver.getPersistentType(prop.getType()));
+                final Object value = accessor.getProperty(prop, getPersistentPropertyType(prop));
 
                 if (value == null)
                     return; //FIXME if you want save nulls to db
@@ -246,7 +245,7 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
 
                     final boolean tryCrypt =
                             Boolean.TRUE.equals(accessor.getProperty(cryptoStateProperty,
-                                    persistentTypeResolver.getPersistentType(cryptoStateProperty.getType())));
+                                    getPersistentPropertyType(cryptoStateProperty)));
 
                     final boolean tryEncode = ByteBuffer.class.isAssignableFrom(prop.getColumnCryptoDbType());
 
@@ -423,7 +422,7 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
         return (CassandraPersistentEntity) mappingContext.getPersistentEntity(clazz);
     }
 
-    private Class<?> getPersistentPropertyType(CassandraPersistentProperty persistentProperty) {
+    private Class<?> getPersistentPropertyType(PersistentProperty persistentProperty) {
         return persistentTypeResolver.getPersistentType(persistentProperty.getType());
     }
 

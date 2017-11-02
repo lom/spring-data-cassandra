@@ -38,7 +38,7 @@ import static org.junit.Assert.assertNull;
  *
  * @author Alexandr V Solomatin
  */
-//@Ignore
+@Ignore
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"/cassandra-test-repository.xml"})
 public class TestPostDao {
