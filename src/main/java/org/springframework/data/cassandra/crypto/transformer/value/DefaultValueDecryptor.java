@@ -40,6 +40,10 @@ class DefaultValueDecryptor implements ValueDecryptor {
 
     @Override
     public Object decrypt(BytesDecryptor bytesDecryptor, Object value) {
+        if (value == null) {
+            return null;
+        }
+
         @SuppressWarnings("unchecked")
         final byte[] bytes = preConverter.toBytes(value);
 
