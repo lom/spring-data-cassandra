@@ -102,6 +102,15 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
         return getByQuery(query);
     }
 
+    public T findOne(ID id, ConsistencyLevel level) {
+        final Select query = baseSelect();
+        query.setConsistencyLevel(level);
+
+        converter.writeIdClause(getEntityClass(), id, query);
+
+        return getByQuery(query);
+    }
+
     @Override
     public CompletableFuture<T> findOneAsync(ID id) {
         final Select query = baseSelect();
