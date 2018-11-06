@@ -7,7 +7,7 @@
     <groupId>org.springframework.data</groupId>
     <artifactId>spring-data-cassandra2</artifactId>
     <packaging>jar</packaging>
-    <version>2.2.0</version>
+    <version>1.2.0</version>
     <name>Spring Data Cassandra</name>
 
     <developers>
@@ -69,7 +69,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <spring.version>5.1.2.RELEASE</spring.version>
+        <spring.version>4.3.12.RELEASE</spring.version>
         <slf4j.version>1.7.2</slf4j.version>
         <log4j.version>1.2.16</log4j.version>
         <joda-time.version>2.7</joda-time.version>
