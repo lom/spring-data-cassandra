@@ -15,6 +15,7 @@
  */
 package org.springframework.data.cassandra.convert;
 
+import org.junit.Ignore;
 import org.springframework.data.cassandra.mapping.CassandraPersistentProperty;
 import com.datastax.driver.core.ColumnDefinitions;
 import com.datastax.driver.core.DataType;
@@ -32,6 +33,7 @@ import static org.junit.Assert.*;
  *
  * @author Alexandr V Solomatin
  */
+@Ignore
 public class TestCassandraPropertyValueProvider {
 
     CassandraPersistentProperty property;

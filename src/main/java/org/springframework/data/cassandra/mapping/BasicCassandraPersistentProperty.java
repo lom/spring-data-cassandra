@@ -18,11 +18,9 @@ package org.springframework.data.cassandra.mapping;
 import org.springframework.data.cassandra.util.CassandraNamingUtils;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
+import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.util.StringUtils;
-
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Field;
 
 /**
  * Cassandra specific {@link org.springframework.data.mapping.model.AnnotationBasedPersistentProperty} implementation.
@@ -42,21 +40,17 @@ public class BasicCassandraPersistentProperty extends AnnotationBasedPersistentP
     /**
      * Creates a new {@link BasicCassandraPersistentProperty}.
      *
-     * @param field
-     * @param propertyDescriptor
-     * @param owner
-     * @param simpleTypeHolder
      */
-    public BasicCassandraPersistentProperty(Field field, PropertyDescriptor propertyDescriptor,
-            CassandraPersistentEntity<?> owner, SimpleTypeHolder simpleTypeHolder) {
+    public BasicCassandraPersistentProperty(Property property, CassandraPersistentEntity<?> owner,
+                                            SimpleTypeHolder simpleTypeHolder) {
 
-        super(field, propertyDescriptor, owner, simpleTypeHolder);
+        super(property, owner, simpleTypeHolder);
 
-        if (field != null) {
+        if (property.getField().isPresent()) {
             final Column annotation = findAnnotation(Column.class);
             columnName = annotation != null && StringUtils.hasText(annotation.value())
                     ? annotation.value()
-                    : CassandraNamingUtils.guessColumnName(field.getName());
+                    : CassandraNamingUtils.guessColumnName(property.getField().get().getName());
 
             final Crypto crypto = findAnnotation(Crypto.class);
             if (crypto != null) {

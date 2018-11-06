@@ -69,7 +69,7 @@ final public class BatchMethodInterceptor implements MethodInterceptor, Ordered,
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
         final BatchInfo batchInfo = batchInfoMap.get(invocation.getMethod().getName());
-        Assert.notNull(batchInfo);
+        Assert.notNull(batchInfo, "batchInfo");
 
         final CassandraTemplate cassandraTemplate = batchInfo.getCassandraTemplate();
 

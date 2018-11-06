@@ -35,7 +35,7 @@ import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
-import org.springframework.data.mapping.model.MappingException;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.model.PersistentEntityParameterValueProvider;
 import org.springframework.data.mapping.model.PropertyValueProvider;
 import org.springframework.data.util.ClassTypeInformation;
@@ -367,8 +367,8 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
     }
 
     public String getColumn(final String propertyPath, final CassandraPersistentEntity persistentEntity) {
-        Assert.hasText(propertyPath);
-        Assert.notNull(persistentEntity);
+        Assert.hasText(propertyPath, "propertyPath");
+        Assert.notNull(persistentEntity, "persistentEntity");
 
         final Iterator<String> parts = Splitter.on('.').split(propertyPath).iterator();
 

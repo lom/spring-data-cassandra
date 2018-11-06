@@ -36,4 +36,28 @@ public interface CassandraRepository<T, ID extends Serializable> extends CrudRep
     CompletableFuture<Void> deleteAsync(T entity);
     CompletableFuture<Void> deleteAsync(Iterable<? extends T> entities);
     CompletableFuture<Void> deleteAllAsync();
+    /**
+     * @deprecated use org.springframework.data.repository.CrudRepository#saveAll(java.lang.Iterable)
+     */
+    default <S extends T> Iterable<S> save(Iterable<S> entities) {return saveAll(entities);}
+    /**
+     * @deprecated use org.springframework.data.repository.CrudRepository#findById(java.lang.Object)
+     */
+    default T findOne(ID id) { return findById(id).orElse(null);}
+    /**
+     * @deprecated use org.springframework.data.repository.CrudRepository#existsById(java.lang.Object)
+     */
+    default boolean exists(ID id) {return existsById(id);}
+    /**
+     * @deprecated use org.springframework.data.repository.CrudRepository#findAllById(java.lang.Iterable)
+     */
+    default Iterable<T> findAll(Iterable<ID> ids) {return findAllById(ids);}
+    /**
+     * @deprecated use org.springframework.data.repository.CrudRepository#deleteById(java.lang.Object)
+     */
+    default void delete(ID id) {deleteById(id);}
+    /**
+     * @deprecated use org.springframework.data.repository.CrudRepository#deleteAll(java.lang.Iterable)
+     */
+    default void delete(Iterable<? extends T> entities) {deleteAll(entities);}
 }

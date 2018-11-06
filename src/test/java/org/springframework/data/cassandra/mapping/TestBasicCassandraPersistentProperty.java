@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.util.ReflectionUtils;
@@ -73,7 +74,8 @@ public class TestBasicCassandraPersistentProperty {
 
     private CassandraPersistentProperty getPropertyFor(String fieldName) {
         Field field = ReflectionUtils.findField(SomeEntity.class, fieldName);
-        return new BasicCassandraPersistentProperty(field, null, entity, new SimpleTypeHolder());
+        return new BasicCassandraPersistentProperty(Property.of(
+                ClassTypeInformation.from(field.getDeclaringClass()), field), entity, SimpleTypeHolder.DEFAULT);
     }
 
     class SomeEntity {

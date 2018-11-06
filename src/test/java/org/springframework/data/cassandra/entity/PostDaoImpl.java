@@ -75,6 +75,6 @@ public class PostDaoImpl extends BaseCassandraRepository<Post,UUID> implements P
 
     @Override
     public void someMethod1() {
-        findOne(UUID.fromString("7c6c94a0-592c-11e2-8080-808080808080"));
+        findById(UUID.fromString("7c6c94a0-592c-11e2-8080-808080808080"));
     }
 }

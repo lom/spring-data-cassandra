@@ -29,7 +29,7 @@ import org.springframework.data.cassandra.entity.CommentPk;
 import org.springframework.data.cassandra.entity.Post;
 import org.springframework.data.cassandra.mapping.CassandraPersistentEntity;
 import org.springframework.data.cassandra.mapping.CassandraPersistentProperty;
-import org.springframework.data.mapping.model.MappingException;
+import org.springframework.data.mapping.MappingException;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;

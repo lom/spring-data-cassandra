@@ -15,6 +15,7 @@
  */
 package org.springframework.data.cassandra.core;
 
+import com.datastax.driver.core.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -22,20 +23,14 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
-import org.springframework.data.cassandra.config.CompressionType;
-import org.springframework.data.cassandra.config.PoolingOptionsConfig;
-import org.springframework.data.cassandra.config.SocketOptionsConfig;
 import org.springframework.util.StringUtils;
 
-import com.datastax.driver.core.AuthProvider;
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.HostDistance;
-import com.datastax.driver.core.PoolingOptions;
 import com.datastax.driver.core.ProtocolOptions.Compression;
-import com.datastax.driver.core.SocketOptions;
 import com.datastax.driver.core.policies.LoadBalancingPolicy;
 import com.datastax.driver.core.policies.ReconnectionPolicy;
 import com.datastax.driver.core.policies.RetryPolicy;
+
+import java.util.Optional;
 
 /**
  * Convenient factory for configuring a Cassandra Cluster.
@@ -54,53 +49,39 @@ public class CassandraClusterFactoryBean implements FactoryBean<Cluster>,
 	
 	private String contactPoints;
 	private int port = DEFAULT_PORT;
-	private CompressionType compressionType;
-	
-	private PoolingOptionsConfig localPoolingOptions;
-	private PoolingOptionsConfig remotePoolingOptions;
-	private SocketOptionsConfig socketOptions;
-	
-	private AuthProvider authProvider;
+	private Integer maxSchemaAgreementWaitSeconds;
+	private Boolean allowBetaProtocolVersion;
+	private ProtocolVersion protocolVersion;
 	private LoadBalancingPolicy loadBalancingPolicy;
 	private ReconnectionPolicy reconnectionPolicy;
 	private RetryPolicy retryPolicy;
-	
+	private AuthProvider authProvider;
+	private Compression compressionType;
 	private boolean metricsEnabled = true;
-	
+	private PoolingOptions poolingOptions;
+	private SocketOptions socketOptions;
+	private QueryOptions queryOptions;
+	private ThreadingOptions threadingOptions;
+	private NettyOptions nettyOptions;
+
 	private final PersistenceExceptionTranslator exceptionTranslator = new CassandraExceptionTranslator();
 
 	public Cluster getObject() throws Exception {
 		return cluster;
 	}
 	
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.FactoryBean#getObjectType()
-	 */
 	public Class<? extends Cluster> getObjectType() {
 		return Cluster.class;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.FactoryBean#isSingleton()
-	 */
 	public boolean isSingleton() {
 		return true;
 	}
 	
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.dao.support.PersistenceExceptionTranslator#translateExceptionIfPossible(java.lang.RuntimeException)
-	 */
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
 		return exceptionTranslator.translateExceptionIfPossible(ex);
 	}
 	
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
-	 */
 	public void afterPropertiesSet() throws Exception {
         log.debug("building cluster for contact points={}, port={}...", contactPoints, port);
 		
@@ -112,55 +93,29 @@ public class CassandraClusterFactoryBean implements FactoryBean<Cluster>,
 		final Cluster.Builder builder = Cluster.builder();
 
 		builder.addContactPoints(StringUtils.commaDelimitedListToStringArray(contactPoints)).withPort(port);
-		
-		if (compressionType != null) {
-			builder.withCompression(convertCompressionType(compressionType));
-		}
 
-		if (localPoolingOptions != null) {
-			builder.withPoolingOptions(configPoolingOptions(HostDistance.LOCAL, localPoolingOptions));
-		}
+		Optional.ofNullable(maxSchemaAgreementWaitSeconds).ifPresent(builder::withMaxSchemaAgreementWaitSeconds);
+		Optional.ofNullable(allowBetaProtocolVersion).ifPresent(b -> builder.allowBetaProtocolVersion());
+        Optional.ofNullable(protocolVersion).ifPresent(builder::withProtocolVersion);
+        Optional.ofNullable(loadBalancingPolicy).ifPresent(builder::withLoadBalancingPolicy);
+        Optional.ofNullable(reconnectionPolicy).ifPresent(builder::withReconnectionPolicy);
+        Optional.ofNullable(retryPolicy).ifPresent(builder::withRetryPolicy);
+        Optional.ofNullable(authProvider).ifPresent(builder::withAuthProvider);
+        Optional.ofNullable(compressionType).ifPresent(builder::withCompression);
+        if (!metricsEnabled)
+            builder.withoutMetrics();
+        Optional.ofNullable(poolingOptions).ifPresent(builder::withPoolingOptions);
+        Optional.ofNullable(socketOptions).ifPresent(builder::withSocketOptions);
+        Optional.ofNullable(queryOptions).ifPresent(builder::withQueryOptions);
+        Optional.ofNullable(threadingOptions).ifPresent(builder::withThreadingOptions);
+        Optional.ofNullable(nettyOptions).ifPresent(builder::withNettyOptions);
 
-		if (remotePoolingOptions != null) {
-			builder.withPoolingOptions(configPoolingOptions(HostDistance.REMOTE, remotePoolingOptions));
-		}
-
-		if (socketOptions != null) {
-			builder.withSocketOptions(configSocketOptions(socketOptions));
-		}
-		
-		if (authProvider != null) {
-			builder.withAuthProvider(authProvider);
-		}
-		
-		if (loadBalancingPolicy != null) {
-			builder.withLoadBalancingPolicy(loadBalancingPolicy);
-		}
-		
-		if (reconnectionPolicy != null) {
-			builder.withReconnectionPolicy(reconnectionPolicy);
-		}
-		
-		if (retryPolicy != null) {
-			builder.withRetryPolicy(retryPolicy);
-		}
-		
-		if (!metricsEnabled) {
-			builder.withoutMetrics();
-		}	
-		
-		final Cluster cluster = builder.build();
-		
-		// initialize property
-		this.cluster = cluster;
+        // initialize property
+		this.cluster = builder.build();
 
         log.debug("building cluster for contact points={}, port={} ok", contactPoints, port);
 	}
-	
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.DisposableBean#destroy()
-	 */
+
 	public void destroy() throws Exception {
 		this.cluster.close();
         log.debug("cluster {} shut down", contactPoints);
@@ -174,26 +129,18 @@ public class CassandraClusterFactoryBean implements FactoryBean<Cluster>,
 		this.port = port;
 	}
 
-	public void setCompressionType(CompressionType compressionType) {
-		this.compressionType = compressionType;
-	}
-	
-	public void setLocalPoolingOptions(PoolingOptionsConfig localPoolingOptions) {
-		this.localPoolingOptions = localPoolingOptions;
+	public void setMaxSchemaAgreementWaitSeconds(Integer maxSchemaAgreementWaitSeconds) {
+		this.maxSchemaAgreementWaitSeconds = maxSchemaAgreementWaitSeconds;
 	}
 
-	public void setRemotePoolingOptions(PoolingOptionsConfig remotePoolingOptions) {
-		this.remotePoolingOptions = remotePoolingOptions;
+	public void setAllowBetaProtocolVersion(boolean allowBetaProtocolVersion) {
+		this.allowBetaProtocolVersion = allowBetaProtocolVersion;
 	}
 
-	public void setSocketOptions(SocketOptionsConfig socketOptions) {
-		this.socketOptions = socketOptions;
+	public void setProtocolVersion(ProtocolVersion protocolVersion) {
+		this.protocolVersion = protocolVersion;
 	}
 
-	public void setAuthProvider(AuthProvider authProvider) {
-		this.authProvider = authProvider;
-	}
-	
 	public void setLoadBalancingPolicy(LoadBalancingPolicy loadBalancingPolicy) {
 		this.loadBalancingPolicy = loadBalancingPolicy;
 	}
@@ -206,65 +153,35 @@ public class CassandraClusterFactoryBean implements FactoryBean<Cluster>,
 		this.retryPolicy = retryPolicy;
 	}
 
+	public void setAuthProvider(AuthProvider authProvider) {
+		this.authProvider = authProvider;
+	}
+
+	public void setCompressionType(Compression compressionType) {
+		this.compressionType = compressionType;
+	}
+
 	public void setMetricsEnabled(boolean metricsEnabled) {
 		this.metricsEnabled = metricsEnabled;
 	}
 
-	private static Compression convertCompressionType(CompressionType type) {
-		switch(type) {
-            case none:
-                return Compression.NONE;
-            case snappy:
-                return Compression.SNAPPY;
-            default:
-                throw new IllegalArgumentException("unknown compression type " + type);
-		}
+	public void setPoolingOptions(PoolingOptions poolingOptions) {
+		this.poolingOptions = poolingOptions;
 	}
-	
-	private static PoolingOptions configPoolingOptions(HostDistance hostDistance, PoolingOptionsConfig config) {
-		final PoolingOptions poolingOptions = new PoolingOptions();
 
-		if (config.getMinSimultaneousRequests() != null) {
-			poolingOptions.setMinSimultaneousRequestsPerConnectionThreshold(hostDistance, config.getMinSimultaneousRequests());
-		}
-		if (config.getMaxSimultaneousRequests() != null) {
-			poolingOptions.setMaxSimultaneousRequestsPerConnectionThreshold(hostDistance, config.getMaxSimultaneousRequests());
-		}
-		if (config.getCoreConnections() != null) {
-			poolingOptions.setCoreConnectionsPerHost(hostDistance, config.getCoreConnections());
-		}
-		if (config.getMaxConnections() != null) {
-			poolingOptions.setMaxConnectionsPerHost(hostDistance, config.getMaxConnections());
-		}
-		
-		return poolingOptions;
+	public void setSocketOptions(SocketOptions socketOptions) {
+		this.socketOptions = socketOptions;
 	}
-	
-	private static SocketOptions configSocketOptions(SocketOptionsConfig config) {
-		final SocketOptions socketOptions = new SocketOptions();
-		
-		if (config.getConnectTimeoutMls() != null) {
-			socketOptions.setConnectTimeoutMillis(config.getConnectTimeoutMls());
-		}
-		if (config.getKeepAlive() != null) {
-			socketOptions.setKeepAlive(config.getKeepAlive());
-		}
-		if (config.getReuseAddress() != null) {
-			socketOptions.setReuseAddress(config.getReuseAddress());
-		}
-		if (config.getSoLinger() != null) {
-			socketOptions.setSoLinger(config.getSoLinger());
-		}
-		if (config.getTcpNoDelay() != null) {
-			socketOptions.setTcpNoDelay(config.getTcpNoDelay());
-		}
-		if (config.getReceiveBufferSize() != null) {
-			socketOptions.setReceiveBufferSize(config.getReceiveBufferSize());
-		}
-		if (config.getSendBufferSize() != null) {
-			socketOptions.setSendBufferSize(config.getSendBufferSize());
-		}
-		
-		return socketOptions;
+
+	public void setQueryOptions(QueryOptions queryOptions) {
+		this.queryOptions = queryOptions;
+	}
+
+	public void setThreadingOptions(ThreadingOptions threadingOptions) {
+		this.threadingOptions = threadingOptions;
+	}
+
+	public void setNettyOptions(NettyOptions nettyOptions) {
+		this.nettyOptions = nettyOptions;
 	}
 }

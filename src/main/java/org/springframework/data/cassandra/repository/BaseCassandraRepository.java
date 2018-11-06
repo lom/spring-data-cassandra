@@ -85,7 +85,7 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
     }
 
     @Override
-    public <S extends T> Iterable<S> save(Iterable<S> entities) {
+    public <S extends T> Iterable<S> saveAll(Iterable<S> entities) {
         for (final S entity: entities) {
             save(entity);
         }
@@ -94,12 +94,12 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
     }
 
     @Override
-    public T findOne(ID id) {
+    public Optional<T> findById(ID id) {
         final Select query = baseSelect();
 
         converter.writeIdClause(getEntityClass(), id, query);
 
-        return getByQuery(query);
+        return Optional.ofNullable(getByQuery(query));
     }
 
     public T findOne(ID id, ConsistencyLevel level) {
@@ -121,7 +121,7 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
     }
 
     @Override
-    public boolean exists(ID id) {
+    public boolean existsById(ID id) {
         final Select query = QueryBuilder.select().countAll().from(getTable());
         queryReadOptions(query);
 
@@ -155,14 +155,12 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
     }
 
     @Override
-    public Iterable<T> findAll(Iterable<ID> ids) {
+    public Iterable<T> findAllById(Iterable<ID> ids) {
         if (persistentEntity.getIdProperty().isEntity()) {
             // ID is complex, need multiple requests
             final ArrayList<T> result = new ArrayList<>(20);
             for (final ID id: ids) {
-                final T persisted = findOne(id);
-                if (persisted != null)
-                    result.add(persisted);
+                findById(id).ifPresent(result::add);
             }
 
             return result;
@@ -225,7 +223,7 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
     }
 
     @Override
-    public void delete(ID id) {
+    public void deleteById(ID id) {
         final Delete query = baseDelete();
 
         converter.writeIdClause(getEntityClass(), id, query);
@@ -244,7 +242,7 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
 
     @Override
     public void delete(T entity) {
-        delete((ID) converter.getEntityId(entity));
+        deleteById((ID) converter.getEntityId(entity));
     }
 
     @Override
@@ -253,7 +251,7 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
     }
 
     @Override
-    public void delete(Iterable<? extends T> entities) {
+    public void deleteAll(Iterable<? extends T> entities) {
         if (persistentEntity.getIdProperty().isEntity()) {
             // ID is complex, need multiple requests
             for (final T entity: entities) {
@@ -280,7 +278,7 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
             ids.add((ID)converter.getEntityId(entity));
         }
 
-        Assert.notEmpty(ids);
+        Assert.notEmpty(ids, "ids");
 
         final Delete query = baseDelete();
         converter.writeIdsClause(getEntityClass(), ids, query);

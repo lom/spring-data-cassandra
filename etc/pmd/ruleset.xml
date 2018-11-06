@@ -27,6 +27,11 @@
         <exclude name="ConfusingTernary"/>
         <exclude name="CloseResource"/>
         <exclude name="GodClass"/>
+        <exclude name="AbstractClassWithoutAbstractMethod"/>
+        <exclude name="AvoidSynchronizedAtMethodLevel"/>
+        <exclude name="ReturnEmptyArrayRatherThanNull"/>
+        <exclude name="EmptyMethodInAbstractClassShouldBeAbstract"/>
+        <exclude name="AvoidProtectedMethodInFinalClassNotExtending"/>
     </rule>
     <!--<rule ref="rulesets/java/coupling.xml" />-->
     <!--<rule ref="rulesets/java/design.xml" />-->

@@ -71,7 +71,7 @@ public class JceksKeySource implements KeySource, InitializingBean {
         return keyPassword;
     }
 
-    public void setKeyPassword(char[] keyPassword) {
+    public void setKeyPassword(char... keyPassword) {
         this.keyPassword = keyPassword;
     }
 

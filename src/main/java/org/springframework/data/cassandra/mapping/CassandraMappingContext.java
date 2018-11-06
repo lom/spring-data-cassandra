@@ -15,10 +15,9 @@
  */
 package org.springframework.data.cassandra.mapping;
 
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Field;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.TypeInformation;
 
@@ -35,16 +34,17 @@ public class CassandraMappingContext
 	 * Creates a new {@link CassandraMappingContext}.
 	 */
 	public CassandraMappingContext() {
-		setSimpleTypeHolder(CassandraSimpleTypes.HOLDER);
-	}
-
-	public CassandraPersistentProperty createPersistentProperty(Field field, PropertyDescriptor descriptor,
-			BasicCassandraPersistentEntity<?> owner, SimpleTypeHolder simpleTypeHolder) {
-		return new BasicCassandraPersistentProperty(field, descriptor, owner, simpleTypeHolder);
+		setSimpleTypeHolder(CassandraSimpleTypeHolder.HOLDER);
 	}
 
 	protected <T> BasicCassandraPersistentEntity<T> createPersistentEntity(TypeInformation<T> typeInformation) {
 		return new BasicCassandraPersistentEntity<T>(typeInformation);
 	}
 
+	@Override
+    protected CassandraPersistentProperty createPersistentProperty(Property property,
+            BasicCassandraPersistentEntity<?> owner, SimpleTypeHolder simpleTypeHolder) {
+
+        return new BasicCassandraPersistentProperty(property, owner, simpleTypeHolder);
+	}
 }
