@@ -64,5 +64,8 @@ public interface CassandraRepository<T, ID extends Serializable> extends CrudRep
      */
     default void delete(Iterable<? extends T> entities) {deleteAll(entities);}
 
+    /**
+     * @deprecated use org.springframework.data.cassandra.repository.CassandraRepository#findById(java.io.Serializable, com.datastax.driver.core.ConsistencyLevel)
+     */
     default T findOne(ID id, ConsistencyLevel level) {return findById(id, level).orElse(null);}
 }
