@@ -102,13 +102,14 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
         return Optional.ofNullable(getByQuery(query));
     }
 
-    public T findOne(ID id, ConsistencyLevel level) {
+    @Override
+    public Optional<T> findById(ID id, ConsistencyLevel level) {
         final Select query = baseSelect();
         query.setConsistencyLevel(level);
 
         converter.writeIdClause(getEntityClass(), id, query);
 
-        return getByQuery(query);
+        return Optional.ofNullable(getByQuery(query));
     }
 
     @Override

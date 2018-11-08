@@ -15,9 +15,11 @@
  */
 package org.springframework.data.cassandra.repository;
 
+import com.datastax.driver.core.ConsistencyLevel;
 import org.springframework.data.repository.CrudRepository;
 
 import java.io.Serializable;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -28,6 +30,7 @@ import java.util.concurrent.CompletableFuture;
 public interface CassandraRepository<T, ID extends Serializable> extends CrudRepository<T, ID>  {
     <S extends T> CompletableFuture<S> saveAsync(S entity);
     CompletableFuture<T> findOneAsync(ID id);
+    Optional<T> findById(ID id, ConsistencyLevel level);
     CompletableFuture<Boolean> existsAsync(ID id);
     CompletableFuture<Iterable<T>> findAllAsync();
     CompletableFuture<Iterable<T>> findAllAsync (Iterable<ID> ids);
@@ -60,4 +63,6 @@ public interface CassandraRepository<T, ID extends Serializable> extends CrudRep
      * @deprecated use org.springframework.data.repository.CrudRepository#deleteAll(java.lang.Iterable)
      */
     default void delete(Iterable<? extends T> entities) {deleteAll(entities);}
+
+    default T findOne(ID id, ConsistencyLevel level) {return findById(id, level).orElse(null);}
 }
