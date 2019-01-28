@@ -7,7 +7,7 @@
     <groupId>org.springframework.data</groupId>
     <artifactId>spring-data-cassandra2</artifactId>
     <packaging>jar</packaging>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
     <name>Spring Data Cassandra</name>
 
     <developers>
@@ -78,6 +78,7 @@
         <netty-all.version>4.1.16.Final</netty-all.version>
         <cassanra-driver.version>3.6.0</cassanra-driver.version>
         <spring-data.version>2.1.2.RELEASE</spring-data.version>
+        <guava.version>27.0.1-jre</guava.version>
 
         <!-- maven plugins -->
         <maven.compile.source>1.8</maven.compile.source>
@@ -271,6 +272,18 @@
             <groupId>com.datastax.cassandra</groupId>
             <artifactId>cassandra-driver-core</artifactId>
             <version>${cassanra-driver.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
         </dependency>
 
         <dependency>

@@ -18,6 +18,7 @@ package org.springframework.data.cassandra.repository;
 import com.datastax.driver.core.*;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.cassandra.convert.CassandraEntityConverter;
 import org.springframework.data.cassandra.core.CassandraExceptionTranslator;
@@ -218,7 +219,7 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
             public void onFailure(Throwable t) {
                 resultFuture.completeExceptionally(t);
             }
-        });
+        }, MoreExecutors.directExecutor());
 
         return resultFuture;
     }
@@ -322,7 +323,7 @@ abstract public class BaseCassandraRepository<T, ID extends Serializable> implem
             public void onFailure(Throwable t) {
                 resultFuture.completeExceptionally(t);
             }
-        });
+        }, MoreExecutors.directExecutor());
 
         return resultFuture;
     }
