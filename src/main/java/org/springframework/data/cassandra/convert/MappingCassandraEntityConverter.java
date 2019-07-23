@@ -234,8 +234,8 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
             public void doWithPersistentProperty(CassandraPersistentProperty prop) {
                 final Object value = accessor.getProperty(prop, getPersistentPropertyType(prop));
 
-                if (value == null)
-                    return; //FIXME if you want save nulls to db
+                //if (value == null)
+                //    return; //FIXME if you want save nulls to db
 
                 if (prop.isEntity()) {
                     writeInsert(value, query);
