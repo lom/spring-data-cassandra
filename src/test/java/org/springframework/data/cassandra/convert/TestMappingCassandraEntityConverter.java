@@ -87,7 +87,7 @@ public class TestMappingCassandraEntityConverter extends EasyMockSupport {
         converter.writeInsert(makeComment(), query);
 
         assertEquals(
-            "INSERT INTO c (body_text,field_double,comment_id,post_id) VALUES ('some text',123.12,5ff6eb04-6c0b-4aaa-9a12-f51af7a7d6dc,b90fcb58-4e53-4908-9e80-4683049362dd);",
+            "INSERT INTO c (body_text,field_double,field_timestamp,field_blob,field_inet,field_map,field_set,fielt_list,comment_id,post_id) VALUES ('some text',123.12,null,null,null,null,null,null,5ff6eb04-6c0b-4aaa-9a12-f51af7a7d6dc,b90fcb58-4e53-4908-9e80-4683049362dd);",
             query.toString()
         );
 
@@ -95,7 +95,7 @@ public class TestMappingCassandraEntityConverter extends EasyMockSupport {
         converter.writeInsert(makePost(), query1);
 
         assertEquals(
-                "INSERT INTO c (body_text,id,title,type) VALUES ('some body',b90fcb58-4e53-4908-9e80-4683049362dd,'some title','TYPE2');",
+                "INSERT INTO c (body_text,crypto,crypto_string,crypto_value,id,title,type) VALUES ('some body',null,null,null,b90fcb58-4e53-4908-9e80-4683049362dd,'some title','TYPE2');",
                 query1.toString()
         );
     }

@@ -234,12 +234,16 @@ public class MappingCassandraEntityConverter implements CassandraEntityConverter
             public void doWithPersistentProperty(CassandraPersistentProperty prop) {
                 final Object value = accessor.getProperty(prop, getPersistentPropertyType(prop));
 
-                //if (value == null)
-                //    return; //FIXME if you want save nulls to db
-
                 if (prop.isEntity()) {
+                    if (value == null)
+                        return;
                     writeInsert(value, query);
                 } else if (prop.isCrypto()) {
+                    if (value == null) {
+                        query.value(prop.getColumnName(), value);
+                        return;
+                    }
+
                     final PersistentProperty cryptoStateProperty =
                             prop.getOwner().getPersistentProperty(prop.getColumnCryptoState());
 
