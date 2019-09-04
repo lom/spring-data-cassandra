@@ -54,7 +54,6 @@ class DefaultValueEncryptor implements ValueEncryptor {
         }
 
         if (preConverter.equals(postConverter)) {
-            System.out.print("Here");
             return value;
         }
 
