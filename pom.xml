@@ -108,7 +108,7 @@
         <pmd.verbose>true</pmd.verbose>
 
         <!-- test deps -->
-        <junit.version>4.12</junit.version>
+        <junit.version>4.13.1</junit.version>
         <easymock.version>3.2</easymock.version>
 
     </properties>
