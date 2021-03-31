@@ -78,7 +78,7 @@
         <netty-all.version>4.1.16.Final</netty-all.version>
         <cassanra-driver.version>3.6.0</cassanra-driver.version>
         <spring-data.version>2.1.2.RELEASE</spring-data.version>
-        <guava.version>27.0.1-jre</guava.version>
+        <guava.version>29.0-jre</guava.version>
 
         <!-- maven plugins -->
         <maven.compile.source>1.8</maven.compile.source>
